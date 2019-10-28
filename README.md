@@ -30,20 +30,27 @@ app这边需要做的:
 2. 修改链接文件(.ld或.lds, 在不同开发环境下可能不同), 把flash区的起始地址改为上面的入口地址， length要根据页大小减去8k或10k.
 3. Makefile或者其他类似指定了flash大小的场合，要减去8k或10k.
 4. main.c在最前面加上两行, 其中VECT_TAB_OFFSET的值是0x2000或0x2800.
+
+```
     NVIC_SetVectorTable(NVIC_VectTab_FLASH, VECT_TAB_OFFSET);
     __enable_irq()
+```
 
 5. 如果是stm32f0系列呢？它们不提供重定向中断向量表的功能, 所以NVIC_SetVectorTable就没用了. 不过bootloader还是能用的，稍微麻烦一点, 需要在main.c最前面加上这几行, 把中断向量表复制到SRAM的起始位置， 然后把复位地址改为指向SRAM起始位置. 
 
+```
     memcpy((void*)(0x20000000), (void*)APP_BASE, 256);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
     SYSCFG_MemoryRemapConfig(SYSCFG_MemoryRemap_SRAM);
     __enable_irq()
+```    
     
 APP_BASE的值是前面提到过的0x08002000或0x08002800. __enable_irq()则还是需要的. 此外, .ld/.lds文件里SRAM起始位置需要改为0x20000100, LENGTH要减去256.
 
 如果要在app里使用eeprom呢？只要在app里加上flash_eeprom.h和flash_eeprom.c两个文件, 并在使用前先初始化即可:
 
+```
     FLASH_EEPROM_Config(APP_BASE - PAGE_SIZE, PAGE_SIZE);
+```
 
 ps. 用到了elm-chan的xprintf库, 致谢!
