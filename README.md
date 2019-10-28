@@ -73,6 +73,22 @@ iap:
 ```
     FLASH_EEPROM_Config(APP_BASE - PAGE_SIZE, PAGE_SIZE);
 ```
+## 命令行操作
+
+所有命令前面需要加上##.
+
+- help: 显示帮助.
+- empty: 检查app区是否为空.
+- erase_all: 擦除app区全部内容.
+- eeprom: 
+    - eeprom read [addr] [size]: 读取EEPROM内容.
+    - eeprom write addr data: 写入EEPROM内容, data为unsigned short型(2字节).
+    - eeprom readall: 读取EEPROM全部内容.
+    - eeprom eraseall: 擦除EEPROM全部内容.
+- reboot: 复位.
+- read [addr] [size]: 读取指定地址, 包括FLASH/SRAM/外设等均可. 如果读到非法地址会复位.
+- sysinfo: 显示系统信息, 包括FLASH大小, SRAM大小, FLASH单页大小, Bootloader和APP占用空间, EEPROM和APP的起始地址.
+
 
 致谢:
 xjtuecho
