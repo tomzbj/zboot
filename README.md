@@ -39,7 +39,7 @@ app这边需要做的:
 
 ```
     NVIC_SetVectorTable(NVIC_VectTab_FLASH, VECT_TAB_OFFSET);
-    __enable_irq()
+    __enable_irq();
 ```
 
 5. 如果是stm32f0系列呢? 它们不提供重定向中断向量表的功能, 所以NVIC_SetVectorTable就没用了. 
@@ -49,7 +49,7 @@ app这边需要做的:
     memcpy((void*)(0x20000000), (void*)APP_BASE, 256);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
     SYSCFG_MemoryRemapConfig(SYSCFG_MemoryRemap_SRAM);
-    __enable_irq()
+    __enable_irq();
 ```    
 
 APP_BASE的值是前面提到过的0x08002000或0x08002800. __enable_irq()则还是需要的. 此外, .ld/.lds文件里SRAM起始位置需要改为0x20000100, LENGTH要减去256.
@@ -89,7 +89,14 @@ iap:
 - read [addr] [size]: 读取指定地址, 包括FLASH/SRAM/外设等均可. 如果读到非法地址会复位.
 - sysinfo: 显示系统信息, 包括FLASH大小, SRAM大小, FLASH单页大小, Bootloader和APP占用空间, EEPROM和APP的起始地址.
 
+## 待更新
 
-致谢:
-xjtuecho
-elm-chan
+- STM32F4xx支持: STM32F4xx的FLASH组织方式与其他系列不太一样, 前四页是16K, 第五页是64K, 第六页和之后都是128K. 因此bootloader本身和EEPROM各需要占用一页16K, 总共需要占用32K FLASH空间. 
+- 硬件CRC32校验: STM32大部分都有硬件CRC单元(我不确定是否全系都有), 但是操作方式不完全相同. 因此使用硬件CRC32校验的话还需要针对不同型号仔细适配. 此外, 如果需要校验的内容较多, 还需要用DMA来加速.
+- flash_eeprom优化: 目前用的是伪地址方案, 每次写入时按"地址:数据"成对写入, 读取时从后往前查找, 找到第一个匹配的地址即返回. 写入时则是从前往后查找, 找到第一个空地址后写入并返回. 将来这里需要改成二分查找, 能稍微快一点.
+以及, ST官方文档的做法, 写满时是用另一页FLASH作为后备页来轮转, 这样使用SRAM空间较少, 并且不怕掉电. 我这里简单起见, 直接在SRAM中轮转, 如果轮转时正好掉电有可能丢失EEPROM全部数据. 在bootloader里问题不大, app里如果追求可靠性的话应该采用ST官方方案, 或者用大电容+掉电中断来预防.
+
+## 致谢
+
+xjtuecho (@xjtuecho)
+elm-chan (http://elm-chan.org)
