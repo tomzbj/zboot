@@ -22,6 +22,10 @@
 #include "stm32f10x.h"
 #define FLASH_PAGE_SIZE 2048
 
+#elif defined (STM32F401xx)
+#include "stm32f4xx.h"
+#define FLASH_PAGE_SIZE 16384
+
 #endif
 
 #if defined (GD32F350)
@@ -46,11 +50,16 @@
 #define usart_flag_get1(usartx, flag) (usartx->ISR & flag)
 #define usart_flag_clear1(usartx, flag) do{usartx->ICR = flag;} while(0)
 
-#elif defined (STM32F10X_HD)
+#elif defined (STM32F10X_HD) || defined (STM32F401xx)
 #define usart_flag_get1(usartx, flag) (usartx->SR & flag)
 #define usart_flag_clear1(usartx, flag) do{usartx->SR = ~flag;} while(0)
 
 
 #endif
 
+#if defined (STM32F401xx)
+
+void FLASH_ErasePage(unsigned long addr);
+
+#endif
 #endif

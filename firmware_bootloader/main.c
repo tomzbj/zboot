@@ -17,21 +17,25 @@ void SystemInit(void)
     RCU_CFG1 = 0x00000000;
     RCU_CFG2 = 0x00000000;
     RCU_CTL0 &= ~(RCU_CTL0_HXTALEN | RCU_CTL0_CKMEN | RCU_CTL0_PLLEN
-        | RCU_CTL0_HXTALBPS);
+            | RCU_CTL0_HXTALBPS);
     RCU_CTL1 &= ~RCU_CTL1_IRC28MEN;
     RCU_ADDCTL &= ~RCU_ADDCTL_IRC48MEN;
     RCU_INT = 0x00000000U;
     RCU_ADDINT = 0x00000000U;
-#elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F10X_HD)
+#elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F10X_HD)|| defined (STM32F401xx)
     RCC_DeInit();
 //    FLASH_PrefetchBufferCmd(ENABLE);
+#if defined (STM32F401xx)
+    FLASH->ACR |= FLASH_ACR_PRFTEN;
+#else
     FLASH->ACR |= FLASH_ACR_PRFTBE;
+#endif
     FLASH->ACR &= ~FLASH_ACR_LATENCY;
 #endif
 
 #if defined (GD32F350)
     SCB->VTOR = NVIC_VECTTAB_FLASH;
-#elif defined (STM32F303xC) | defined (STM32F10X_HD)
+#elif defined (STM32F303xC) | defined (STM32F10X_HD) | defined (STM32F401xx)
     SCB->VTOR = NVIC_VectTab_FLASH;     // invalid on cortex-m0
 #endif
 
@@ -72,7 +76,8 @@ void BusFault_Handler(void)
     }
 #endif
     NVIC_SystemReset();
-    while(1);
+    while(1)
+        ;
 }
 void _init(void)
 {
