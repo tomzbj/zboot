@@ -12,6 +12,7 @@ arm-none-eabi-gcc 4.9.3. Keil或IAR用户可能需要手动修改链接脚本和
 1. STM32F072CB, 实测正常使用.
 2. STM32F303CC, 实测正常使用.
 3. GD32F350CB, 实测正常使用.
+3. STM32F401RC, 初步实测正常使用.
 4. STM32F030C8, 可正常编译, 未测试.
 5. STM32F103RC, 可正常编译, 未测试.
 
@@ -19,6 +20,7 @@ arm-none-eabi-gcc 4.9.3. Keil或IAR用户可能需要手动修改链接脚本和
 
 - 在FLASH每页1K的MCU上共占用8K FLASH, 其中EEPROM占1页, 提供256字节EEPROM空间.
 - 在FLASH每页2K的MCU上共占用10K FLASH, 提供512字节EEPROM空间.
+- 在STM32F401上共占用32K FLASH, 提供4096字节EEPROM空间. (尚未充分测试!)
 
 ## 时钟及波特率
 
@@ -32,10 +34,10 @@ arm-none-eabi-gcc 4.9.3. Keil或IAR用户可能需要手动修改链接脚本和
 
 app这边需要做的:
 
-1. 写入bootloader后先在串口命令行执行## sysinfo, 取得app区的入口地址, 应该是0x08002000或0x08002800.
-2. 修改链接文件(.ld或.lds, 在不同开发环境下可能不同), 把FLASH区的起始地址改为上面的入口地址,  LENGTH要根据页大小减去8K或10K.
-3. Makefile或者其他类似指定了FLASH大小的场合, 要减去8K或10K.
-4. main.c在最前面加上两行, 其中VECT_TAB_OFFSET的值是0x2000或0x2800.
+1. 写入bootloader后先在串口命令行执行## sysinfo, 取得app区的入口地址, 应该是0x08002000或0x08002800. STM32F401则是0x08008000.
+2. 修改链接文件(.ld或.lds, 在不同开发环境下可能不同), 把FLASH区的起始地址改为上面的入口地址,  LENGTH要根据页大小减去8K或10K. STM32F401要减去32K.
+3. Makefile或者其他类似指定了FLASH大小的场合, 要减去8K或10K. STM32F401要减去32K.
+4. main.c在最前面加上两行, 其中VECT_TAB_OFFSET的值是0x2000或0x2800. STM32F401为0x8000.
 
 ```
     NVIC_SetVectorTable(NVIC_VectTab_FLASH, VECT_TAB_OFFSET);
@@ -52,7 +54,7 @@ app这边需要做的:
     __enable_irq();
 ```    
 
-APP_BASE的值是前面提到过的0x08002000或0x08002800. __enable_irq()则还是需要的. 此外, .ld/.lds文件里SRAM起始位置需要改为0x20000100, LENGTH要减去256.
+APP_BASE的值是前面提到过的0x08002000/0x08002800. __enable_irq()则还是需要的. 此外, .ld/.lds文件里SRAM起始位置需要改为0x20000100, LENGTH要减去256.
 
 5. 上电启动同时执行py iap.py xxx.hex即可. (启动延迟约1s后自动跳转到app.) 
 
@@ -91,7 +93,6 @@ iap:
 
 ## 待更新
 
-- STM32F4xx支持: STM32F4xx的FLASH组织方式与其他系列不太一样, 前四页是16K, 第五页是64K, 第六页和之后都是128K. 因此bootloader本身和EEPROM各需要占用一页16K, 总共需要占用32K FLASH空间. 
 - 硬件CRC32校验: STM32大部分都有硬件CRC单元(我不确定是否全系都有), 但是操作方式不完全相同. 因此使用硬件CRC32校验的话还需要针对不同型号仔细适配. 此外, 如果需要校验的内容较多, 还需要用DMA来加速.
 - flash_eeprom优化: 目前用的是伪地址方案, 每次写入时按"地址:数据"成对写入, 读取时从后往前查找, 找到第一个匹配的地址即返回. 写入时则是从前往后查找, 找到第一个空地址后写入并返回. 将来这里需要改成二分查找, 能稍微快一点.
 以及, ST官方文档的做法, 写满时是用另一页FLASH作为后备页来轮转, 这样使用SRAM空间较少, 并且不怕掉电. 我这里简单起见, 直接在SRAM中轮转, 如果轮转时正好掉电有可能丢失EEPROM全部数据. 在bootloader里问题不大, app里如果追求可靠性的话应该采用ST官方方案, 或者用大电容+掉电中断来预防.

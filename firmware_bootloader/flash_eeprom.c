@@ -25,7 +25,7 @@ static int GetFirstEmptyAddr(void)
 
 static void Rotate(void)
 {
-    unsigned short buf[256];    // for 2k page
+    unsigned short buf[FLASH_PAGE_SIZE / 8]; // 128 for 1k, 256 for 2k, 2k for 16k
     FLASH_EEPROM_ReadData(0, buf, EEPROM_SIZE);
 
     FLASH_Unlock();

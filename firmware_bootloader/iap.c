@@ -46,14 +46,18 @@ void IAP_Config(void)
     extern int _edata, _estack, _sdata, __fini_array_end;
 
     g.bootloader_size = ((unsigned long)&__fini_array_end - FLASH_BASE)
-        + ((unsigned long)&_edata - (unsigned long)&_sdata);
+            + ((unsigned long)&_edata - (unsigned long)&_sdata);
 #if defined (GD32F350) || defined (STM32F10X_HD)
 #define REG_DENSITY     *(unsigned long*)0x1ffff7e0
     g.flash_size = REG_DENSITY & 0xffff;
 #elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030)
 #define REG_DENSITY     *(unsigned short*)0x1ffff7cc
     g.flash_size = REG_DENSITY;
+#elif defined (STM32F401xx)
+#define REG_DENSITY     *(unsigned short*)0x1fff7a22
+    g.flash_size = REG_DENSITY;
 #endif
+
     g.sram_size = ((unsigned long)&_estack - (unsigned long)&_sdata) / 1024;
 
     g.eeprom_base = FLASH_BASE + g.bootloader_size;
@@ -101,9 +105,13 @@ void IAP_EraseApp(void)
     size = g.max_app_size;
 
     FLASH_Unlock();
+#if defined (STM32F401xx)
+    FLASH_ClearFlag(FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
+#else
     FLASH_ClearFlag(FLASH_FLAG_PGERR);
+#endif
     for(unsigned long pos = g.app_base; pos < g.app_base + size; pos +=
-        FLASH_PAGE_SIZE) {
+            FLASH_PAGE_SIZE) {
         if(!IAP_CheckEmpty((unsigned long*)pos, FLASH_PAGE_SIZE))
             FLASH_ErasePage(pos);
     }
@@ -157,7 +165,11 @@ void IAP_Parse(const unsigned char* msg, int msg_size)
             else {
                 content = &msg[8];
                 FLASH_Unlock();
+#if defined (STM32F401xx)
+                FLASH_ClearFlag(FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
+#else
                 FLASH_ClearFlag(FLASH_FLAG_PGERR);
+#endif
                 while(size) {
                     FLASH_ProgramWord(pos, *(unsigned long*)content);
                     size -= 4;

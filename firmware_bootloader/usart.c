@@ -22,6 +22,9 @@
 #elif defined (STM32F10X_HD)
 #define USARTx USART1
 
+#elif defined (STM32F401xx)
+#define USARTx USART2
+
 #endif
 
 static struct {
@@ -55,6 +58,19 @@ void USART_Config(void)
     GPIOB->PUPDR |= (GPIO_PuPd_NOPULL << (10 * 2)) | (GPIO_PuPd_NOPULL << (11 * 2));
     GPIO_PinAFConfig(GPIOB, GPIO_PinSource10, GPIO_AF_7);
     GPIO_PinAFConfig(GPIOB, GPIO_PinSource11, GPIO_AF_7);
+
+//#elif 1
+#elif defined (STM32F401xx)
+    RCC->APB1ENR |= RCC_APB1Periph_USART2;
+    RCC->AHB1ENR |= RCC_AHB1Periph_GPIOA;
+
+    GPIOA->OSPEEDR |= (GPIO_Speed_100MHz << (2 * 2)) | (GPIO_Speed_100MHz << (3 * 2));
+    GPIOA->OTYPER |= (GPIO_OType_PP << (2 )) | (GPIO_OType_PP << (3));
+    GPIOA->MODER |= (GPIO_Mode_AF << (2 * 2)) | (GPIO_Mode_AF << (3 * 2));
+    GPIOA->PUPDR |= (GPIO_PuPd_NOPULL << (2 * 2)) | (GPIO_PuPd_NOPULL << (3 * 2));
+    GPIO_PinAFConfig(GPIOA, GPIO_PinSource2, GPIO_AF_USART2);
+    GPIO_PinAFConfig(GPIOA, GPIO_PinSource3, GPIO_AF_USART2);
+
 #elif defined (STM32F072)
     RCC->APB2ENR |= RCC_APB2Periph_USART1;
     RCC->AHBENR |= RCC_AHBPeriph_GPIOB;
@@ -88,8 +104,13 @@ void USART_Config(void)
 #endif
     USARTx->CR1 &= ~USART_CR1_UE; // stop
     USARTx->CR1 |= (USART_Mode_Tx | USART_Mode_Rx);
+#if !defined (STM32F401xx)
     USARTx->BRR = 16; // 8M / 500k = 16
-#if !defined (STM32F10X_HD)
+#else
+    USARTx->BRR = 32; // 16M / 500k = 32
+#endif
+
+#if !defined (STM32F10X_HD) && !defined (STM32F401xx)
     USARTx->CR2 |= USART_CR2_SWAP;
 #endif
     USARTx->CR1 |= USART_CR1_UE;
@@ -113,7 +134,7 @@ void USART_Poll(void)
             g.msg[g.size] = USART_RDATA(USARTx);
 #elif defined(STM32F303xC) || defined (STM32F072) || defined (STM32F030)
             g.msg[g.size] = USARTx->RDR;
-#elif defined(STM32F10X_HD)
+#elif defined(STM32F10X_HD) || defined (STM32F401xx)
             g.msg[g.size] = USARTx->DR;
 #endif
             g.size++;
@@ -150,7 +171,7 @@ void uputc(unsigned char c)
     USART_TDATA (USARTx) = (USART_TDATA_TDATA & c);
 #elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030)
     USARTx->TDR = c;
-#elif defined (STM32F10X_HD)
+#elif defined (STM32F10X_HD) || defined (STM32F401xx)
     USARTx->DR = c;
 #endif
     ( {  while(RESET == usart_flag_get1(USARTx, USART_FLAG_TC));});
