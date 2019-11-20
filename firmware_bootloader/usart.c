@@ -25,6 +25,9 @@
 #elif defined (STM32F401xx)
 #define USARTx USART2
 
+#elif defined (STM32F401xx)
+#define USARTx USART2
+
 #endif
 
 static struct {
@@ -108,7 +111,7 @@ void USART_Config(void)
 #if !defined (STM32F401xx)
     USARTx->BRR = 16; // 8M / 500k = 16
 #else
-            USARTx->BRR = 32; // 16M / 500k = 32
+    USARTx->BRR = 32; // 16M / 500k = 32
 #endif
 
 #if !defined (STM32F10X_HD) && !defined (STM32F401xx)
