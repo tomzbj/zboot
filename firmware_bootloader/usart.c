@@ -20,7 +20,7 @@
 #define USARTx USART1
 
 #elif defined (STM32F10X_HD)
-#define USARTx USART1
+#define USARTx USART3
 
 #elif defined (STM32F401xx)
 #define USARTx USART2
@@ -94,20 +94,21 @@ void USART_Config(void)
     GPIOB->AFR[0] = 0x00000000UL;// PB6 & 7 -> GPIO_AF_0
 
 #elif defined (STM32F10X_HD)
-    RCC->APB2ENR |= RCC_APB2Periph_USART1;
-    RCC->APB2ENR |= RCC_APB2Periph_GPIOA;
+    RCC->APB1ENR |= RCC_APB1Periph_USART3;
+    RCC->APB2ENR |= RCC_APB2Periph_GPIOB;
+//    RCC->APB2ENR |= RCC_APB2Periph_AFIO;
 
-    GPIOA->CRH &= 0xf << ((9-8)*4);
-    GPIOA->CRH &= 0xf << ((10-8)*4);
-    GPIOA->CRH |= ((GPIO_Mode_AF_PP | GPIO_Speed_50MHz) << (9-8) *4);
-    GPIOA->CRH |= ((GPIO_Mode_IPU| GPIO_Speed_50MHz) << (10-8) *4);
+    GPIOB->CRH &= ~0xf << ((10-8)*4);
+    GPIOB->CRH &= ~0xf << ((11-8)*4);
+    GPIOB->CRH |= (((GPIO_Mode_AF_PP&0xf) | GPIO_Speed_50MHz) << ((10-8) *4));
+    GPIOB->CRH |= (((GPIO_Mode_IPU&0xf)) << ((11-8) *4));
 #endif
     USARTx->CR1 &= ~USART_CR1_UE; // stop
     USARTx->CR1 |= (USART_Mode_Tx | USART_Mode_Rx);
 #if !defined (STM32F401xx)
     USARTx->BRR = 16; // 8M / 500k = 16
 #else
-    USARTx->BRR = 32; // 16M / 500k = 32
+            USARTx->BRR = 32; // 16M / 500k = 32
 #endif
 
 #if !defined (STM32F10X_HD) && !defined (STM32F401xx)
@@ -155,6 +156,9 @@ void USART_Poll(void)
     }
     if(usart_flag_get1(USARTx, USART_FLAG_ORE)) {
         usart_flag_clear1(USARTx, USART_FLAG_ORE);
+    }
+    if(usart_flag_get1(USARTx, USART_FLAG_FE)) {
+        usart_flag_clear1(USARTx, USART_FLAG_FE);
     }
 }
 
