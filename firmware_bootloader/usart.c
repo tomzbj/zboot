@@ -111,7 +111,7 @@ void USART_Config(void)
 #if !defined (STM32F401xx)
     USARTx->BRR = 16; // 8M / 500k = 16
 #else
-    USARTx->BRR = 32; // 16M / 500k = 32
+            USARTx->BRR = 32; // 16M / 500k = 32
 #endif
 
 #if !defined (STM32F10X_HD) && !defined (STM32F401xx)
@@ -155,13 +155,31 @@ void USART_Poll(void)
             g.nocomm = 0;
         }
         g.size = 0;
+#if defined(STM32F10X_HD)
+        volatile unsigned long tmp = tmp;
+        tmp = USARTx->SR;
+        tmp = USARTx->DR;
+#else
         usart_flag_clear1(USARTx, USART_FLAG_IDLE);
+#endif
     }
     if(usart_flag_get1(USARTx, USART_FLAG_ORE)) {
+#if defined(STM32F10X_HD)
+        volatile unsigned long tmp = tmp;
+        tmp = USARTx->SR;
+        tmp = USARTx->DR;
+#else
         usart_flag_clear1(USARTx, USART_FLAG_ORE);
+#endif
     }
     if(usart_flag_get1(USARTx, USART_FLAG_FE)) {
+#if defined(STM32F10X_HD)
+        volatile unsigned long tmp = tmp;
+        tmp = USARTx->SR;
+        tmp = USARTx->DR;
+#else
         usart_flag_clear1(USARTx, USART_FLAG_FE);
+#endif
     }
 }
 
