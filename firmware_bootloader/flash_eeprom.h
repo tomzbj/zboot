@@ -1,13 +1,6 @@
 #ifndef _FLASH_EEPROM_H
 #define _FLASH_EEPROM_H
 
-#define EEPROM_Config     FLASH_EEPROM_Config
-#define EEPROM_Config     FLASH_EEPROM_Config
-#define EEPROM_WriteWord  FLASH_EEPROM_WriteWord
-#define EEPROM_ReadWord   FLASH_EEPROM_ReadWord
-#define EEPROM_WriteData  FLASH_EEPROM_WriteData
-#define EEPROM_ReadData   FLASH_EEPROM_ReadData
-
 void FLASH_EEPROM_Config(unsigned long base_addr, unsigned short page_size);
 void FLASH_EEPROM_WriteWord(unsigned short addr, unsigned short data);
 unsigned short FLASH_EEPROM_ReadWord(unsigned short addr);

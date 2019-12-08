@@ -1,9 +1,9 @@
 # hardware
 CPU := cortex-m0
-MCU := STM32F072
+MCU := STM32F042
 FREQ := 8000000
-FLASH_SIZE := 128K
-MEM_SIZE := 16K
+FLASH_SIZE := 32K
+MEM_SIZE := 6K
 
 # toolchain
 TRGT = arm-none-eabi-
@@ -11,7 +11,6 @@ CC   = $(TRGT)gcc
 CP   = $(TRGT)objcopy
 AS   = $(TRGT)gcc -x assembler-with-cpp
 HEX  = $(CP) -O ihex
-BIN  = $(CP) -O binary# --gap-fill=0xff
 
 REMOVE = rm -f
 REMOVEDIR = rm -rf
@@ -45,7 +44,7 @@ STDPHDRV_SRCDIR = $(STDPHDRV_DIR)/src
 STDPHDRV_INCDIR = $(STDPHDRV_DIR)/inc
 STARTUPDIR = $(STDLIBDIR)/_startup
 INCDIR = ./inc
-DLIBS = -L. -lstm32f072_8m
+DLIBS = -L _libs -lstm32f042_8m
 
 ## List ASM source files here
 ASRC = $(STARTUPDIR)/startup_$(shell echo $(MCU) | tr A-Z a-z).s
@@ -98,7 +97,7 @@ TEXT =
 # makefile rules
  
 .PHONY: all clean
-all: $(OBJS) $(LDSCRIPT) $(FULL_PRJ).elf  $(FULL_PRJ).hex $(FULL_PRJ).bin
+all: $(OBJS) $(LDSCRIPT) $(FULL_PRJ).elf  $(FULL_PRJ).hex
 	$(TRGT)size $(PROJECT)_rom.elf
 #	$(TRGT)size $(PROJECT)_rom.elf | usage $(FLASH_SIZE) $(MEM_SIZE)
 
@@ -127,24 +126,17 @@ all: $(OBJS) $(LDSCRIPT) $(FULL_PRJ).elf  $(FULL_PRJ).hex $(FULL_PRJ).bin
 %.hex: %.elf
 	$(HEX) $< $@
 	
-%.bin: %.elf
-	$(BIN) $< $@
-
 clean:
 	$(REMOVE) $(OBJS)
 	rm $(FULL_PRJ).elf
 	rm $(FULL_PRJ).map
 	rm $(FULL_PRJ).hex
-#	rm $(FULL_PRJ).bin
 	rm $(LDSCRIPT)
 	rm $(SRC:.c=.lst)
 	rm $(ASRC:.s=.lst)
     
 flash:
 	$(STLINK) -c SWD freq=1000 -P $(FULL_PRJ).hex -V -Rst
-
-iap:
-	$(IAP) $(FULL_PRJ).bin
 
 reset:
 	$(STLINK) -c SWD -Rst 
