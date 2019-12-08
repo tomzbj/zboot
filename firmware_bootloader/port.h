@@ -14,7 +14,7 @@
 #include "stm32f0xx.h"
 #define FLASH_PAGE_SIZE 2048
 
-#elif defined (STM32F030)
+#elif defined (STM32F030) || defined (STM32F042)
 #include "stm32f0xx.h"
 #define FLASH_PAGE_SIZE 1024
 
@@ -43,9 +43,10 @@
 #define USART_FLAG_RXNE USART_FLAG_RBNE
 #define USART_FLAG_TXE USART_FLAG_TBE
 #define USART_FLAG_ORE USART_FLAG_ORERR
+#define USART_FLAG_FE USART_FLAG_FERR
 
 
-#elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030)
+#elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F042)
 
 #define usart_flag_get1(usartx, flag) (usartx->ISR & flag)
 #define usart_flag_clear1(usartx, flag) do{usartx->ICR = flag;} while(0)

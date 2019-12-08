@@ -1,8 +1,3 @@
-/// @file flash_eeprom.h
-/// @brief 
-/// @author Zhang Hao, stavrosatic@gmail.com
-/// @version R0.1
-/// @date 2017-10-12
 #ifndef _FLASH_EEPROM_H
 #define _FLASH_EEPROM_H
 

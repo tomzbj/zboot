@@ -1,5 +1,4 @@
 #include "flash_eeprom.h"
-#include "usart.h" // for debug
 #include "misc.h"
 
 static struct {

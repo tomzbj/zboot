@@ -5,7 +5,7 @@
 #include "flash_eeprom.h"
 #include <stdio.h>
 
-//static int flag_jump;
+static int flag_jump = 0;
 
 void SystemInit(void)
 {
@@ -22,7 +22,7 @@ void SystemInit(void)
     RCU_ADDCTL &= ~RCU_ADDCTL_IRC48MEN;
     RCU_INT = 0x00000000U;
     RCU_ADDINT = 0x00000000U;
-#elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F10X_HD)|| defined (STM32F401xx)
+#elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F10X_HD)|| defined (STM32F401xx) || defined (STM32F042)
     RCC_DeInit();
 //    FLASH_PrefetchBufferCmd(ENABLE);
 #if defined (STM32F401xx)
@@ -40,8 +40,6 @@ void SystemInit(void)
 #endif
 
 }
-
-static int flag_jump = 0;
 
 int main(void)
 {

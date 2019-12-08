@@ -16,7 +16,7 @@
 #elif defined (STM32F072)
 #define USARTx USART1
 
-#elif defined (STM32F030)
+#elif defined (STM32F030) || defined (STM32F042)
 #define USARTx USART1
 
 #elif defined (STM32F10X_HD)
@@ -74,18 +74,7 @@ void USART_Config(void)
     GPIO_PinAFConfig(GPIOA, GPIO_PinSource2, GPIO_AF_USART2);
     GPIO_PinAFConfig(GPIOA, GPIO_PinSource3, GPIO_AF_USART2);
 
-#elif defined (STM32F072)
-    RCC->APB2ENR |= RCC_APB2Periph_USART1;
-    RCC->AHBENR |= RCC_AHBPeriph_GPIOB;
-
-    GPIOB->OSPEEDR |= (GPIO_Speed_50MHz << (6 * 2)) | (GPIO_Speed_50MHz << (7 * 2));
-    GPIOB->OTYPER |= (GPIO_OType_PP << (6 * 2)) | (GPIO_OType_PP << (7 * 2));
-//    GPIOB->MODER |= (GPIO_Mode_OUT << (6 * 2)) | (GPIO_Mode_OUT << (7 * 2));
-    GPIOB->MODER |= (GPIO_Mode_AF << (6 * 2)) | (GPIO_Mode_AF << (7 * 2));
-    GPIOB->PUPDR |= (GPIO_PuPd_NOPULL << (6 * 2)) | (GPIO_PuPd_NOPULL << (7 * 2));
-    GPIOB->AFR[0] = 0x00000000UL;// PB6 & 7 -> GPIO_AF_0
-
-#elif defined (STM32F030)
+#elif defined (STM32F072) || defined (STM32F042) || defined (STM32F030)
     RCC->APB2ENR |= RCC_APB2Periph_USART1;
     RCC->AHBENR |= RCC_AHBPeriph_GPIOB;
 
@@ -136,7 +125,7 @@ void USART_Poll(void)
         if(g.size < MAX_LEN) {
 #if defined(GD32F350)
             g.msg[g.size] = USART_RDATA(USARTx);
-#elif defined(STM32F303xC) || defined (STM32F072) || defined (STM32F030)
+#elif defined(STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F042)
             g.msg[g.size] = USARTx->RDR;
 #elif defined(STM32F10X_HD) || defined (STM32F401xx)
             g.msg[g.size] = USARTx->DR;
@@ -194,7 +183,7 @@ void uputc(unsigned char c)
     ( {  while(RESET == usart_flag_get1(USARTx, USART_FLAG_TXE));});
 #if defined (GD32F350)
     USART_TDATA (USARTx) = (USART_TDATA_TDATA & c);
-#elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030)
+#elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F042)
     USARTx->TDR = c;
 #elif defined (STM32F10X_HD) || defined (STM32F401xx)
     USARTx->DR = c;

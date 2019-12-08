@@ -1,14 +1,7 @@
-/// @file misc.h
-/// @brief 
-/// @author Zhang Hao, stavrosatic@gmail.com
-/// @version R1.5
-/// @date 2017-10-13
 #ifndef _MISC_H
 #define _MISC_H
 
-#include <stdint.h>
 #include <stdio.h>
-//#include <stdbool.h>
 #include "port.h"
 
 

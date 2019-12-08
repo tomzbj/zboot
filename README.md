@@ -10,15 +10,17 @@ arm-none-eabi-gcc 4.9.3. Keil或IAR用户可能需要手动修改链接脚本和
 ## 支持MCU列表(更新中)
 
 1. STM32F072CB, 实测正常使用.
-2. STM32F303CC, 实测正常使用.
-3. GD32F350CB, 实测正常使用.
-3. STM32F401RC, 初步实测正常使用.
-5. STM32F103RC, 初步实测正常使用.
-4. STM32F030C8, 可正常编译, 未测试.
+1. STM32F303CC, 实测正常使用.
+1. GD32F350CB, 实测正常使用.
+1. STM32F103RC, 实测正常使用.
+1. STM32F401RC, 初步实测正常使用.
+1. STM32F030C8, 可正常编译, 未测试.
+1. STM32F042F6, 可正常编译, 未测试.
 
 ## 空间占用情况
 
 - 在FLASH每页1K的MCU上共占用8K FLASH, 其中EEPROM占1页, 提供256字节EEPROM空间.
+- (在STM32F042上占用9K FLASH.)
 - 在FLASH每页2K的MCU上共占用10K FLASH, 提供512字节EEPROM空间.
 - 在STM32F401上共占用32K FLASH, 提供4096字节EEPROM空间. (尚未充分测试!)
 
