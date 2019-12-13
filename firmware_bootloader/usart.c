@@ -7,7 +7,7 @@
 
 #define MAX_LEN 640
 
-#if defined (GD32F350)
+#if defined (GD32F350)  || defined (GD32F130_150)
 #define USARTx USART0
 
 #elif defined (STM32F303xC)
@@ -43,7 +43,7 @@ static struct {
 
 void USART_Config(void)
 {
-#if defined (GD32F350)
+#if defined (GD32F350) || defined (GD32F130_150)
     RCU_REG_VAL(RCU_USART0) |= BIT(RCU_BIT_POS(RCU_USART0));
     RCU_REG_VAL(RCU_GPIOA) |= BIT(RCU_BIT_POS(RCU_GPIOA));
     gpio_af_set(GPIOA, GPIO_AF_1, GPIO_PIN_9 | GPIO_PIN_10);
@@ -149,7 +149,7 @@ void USART_Poll(void)
 {
     if(usart_flag_get1(USARTx, USART_FLAG_RXNE)) {
         if(g.size < MAX_LEN) {
-#if defined(GD32F350)
+#if defined(GD32F350) || defined (GD32F130_150)
             g.msg[g.size] = USART_RDATA(USARTx);
 #elif defined(STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F042)
             g.msg[g.size] = USARTx->RDR;
@@ -208,7 +208,7 @@ void uwrite(const void* data, int size)
 void uputc(unsigned char c)
 {
     ( {  while(RESET == usart_flag_get1(USARTx, USART_FLAG_TXE));});
-#if defined (GD32F350)
+#if defined (GD32F350) || defined (GD32F130_150)
     USART_TDATA (USARTx) = (USART_TDATA_TDATA & c);
 #elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F042)
     USARTx->TDR = c;

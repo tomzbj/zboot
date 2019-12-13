@@ -6,6 +6,10 @@
 #include "gd32f3x0.h"
 #define FLASH_PAGE_SIZE 1024
 
+#elif defined (GD32F130_150)
+#include "gd32f1x0.h"
+#define FLASH_PAGE_SIZE 1024
+
 #elif defined (STM32F303xC)
 #include "stm32f30x.h"
 #define FLASH_PAGE_SIZE 2048
@@ -28,7 +32,7 @@
 
 #endif
 
-#if defined (GD32F350)
+#if defined (GD32F350) || defined (GD32F130_150)
 
 #define FLASH_Unlock() fmc_unlock()
 #define FLASH_Lock() fmc_lock()

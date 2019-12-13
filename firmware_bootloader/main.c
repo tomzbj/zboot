@@ -9,7 +9,8 @@ static int flag_jump = 0;
 
 void SystemInit(void)
 {
-#if defined (GD32F350)
+#if defined (GD32F350) || defined (GD32F130_150)
+//    rcu_deinit();
     RCU_APB2EN = BIT(0);
     RCU_CTL0 |= RCU_CTL0_IRC8MEN; // enable IRC8M
     ( {  while(RESET == (RCU_CTL0 & RCU_CTL0_IRC8MSTB));}); // reset RCU
@@ -18,10 +19,12 @@ void SystemInit(void)
     RCU_CFG2 = 0x00000000;
     RCU_CTL0 &= ~(RCU_CTL0_HXTALEN | RCU_CTL0_CKMEN | RCU_CTL0_PLLEN
             | RCU_CTL0_HXTALBPS);
+#if defined (GD32F350)
     RCU_CTL1 &= ~RCU_CTL1_IRC28MEN;
     RCU_ADDCTL &= ~RCU_ADDCTL_IRC48MEN;
-    RCU_INT = 0x00000000U;
     RCU_ADDINT = 0x00000000U;
+#endif
+    RCU_INT = 0x00000000U;
 #elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F10X_HD)|| defined (STM32F401xx) || defined (STM32F042)
     RCC_DeInit();
 //    FLASH_PrefetchBufferCmd(ENABLE);
@@ -33,7 +36,7 @@ void SystemInit(void)
     FLASH->ACR &= ~FLASH_ACR_LATENCY;
 #endif
 
-#if defined (GD32F350)
+#if defined (GD32F350) || defined (GD32F130_150)
     SCB->VTOR = NVIC_VECTTAB_FLASH;
 #elif defined (STM32F303xC) | defined (STM32F10X_HD) | defined (STM32F401xx)
     SCB->VTOR = NVIC_VectTab_FLASH;     // invalid on cortex-m0
@@ -77,7 +80,7 @@ int main(void)
     USART_Config();
     IAP_Sysinfo_t* inf = IAP_GetInfo();
     FLASH_EEPROM_Config(inf->eeprom_base, FLASH_PAGE_SIZE);
-#if defined (GD32F350) || defined (STM32F303xC) || defined (STM32F10X_HD)
+#if defined (GD32F350) || defined (STM32F303xC) || defined (STM32F10X_HD) || defined (GD32F130_150)
     *(unsigned long*)0xe000ed24 = 0x00070000; // enable usage fault
 #endif
     while(1) {
@@ -98,7 +101,7 @@ void SysTick_Handler(void)
 
 void BusFault_Handler(void)
 {
-#if defined (GD32F350) || defined (STM32F303xC) || defined (STM32F10X_HD)
+#if defined (GD32F350) || defined (STM32F303xC) || defined (STM32F10X_HD) || defined (GD32F130_150)
     if(SCB->CFSR & 0x0200) {
         xprintf("Read error @ %08lx\n", (unsigned long)(SCB->BFAR));
     }
