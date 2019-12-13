@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#include "misc.h"
+#include "zboot_misc.h"
 #include "xprintf.h"
 #include "iap.h"
 #include "flash_eeprom.h"

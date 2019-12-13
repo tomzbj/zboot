@@ -1,4 +1,4 @@
-#include "misc.h"
+#include "zboot_misc.h"
 
 #if defined (STM32F401xx)
 

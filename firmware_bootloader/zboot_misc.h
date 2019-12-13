@@ -1,5 +1,5 @@
-#ifndef _MISC_H
-#define _MISC_H
+#ifndef _ZBOOT_MISC_H
+#define _ZBOOT_MISC_H
 
 #include <stdio.h>
 #include "port.h"

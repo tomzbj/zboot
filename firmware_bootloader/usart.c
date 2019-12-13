@@ -1,5 +1,5 @@
 #include <string.h>
-#include "misc.h"
+#include "zboot_misc.h"
 #include "usart.h"
 #include "iap.h"
 #include "cli.h"
@@ -20,7 +20,12 @@
 #define USARTx USART1
 
 #elif defined (STM32F10X_HD)
+
+#if defined (STM32F10X_USART1_FORK)
+#define USARTx USART1
+#else
 #define USARTx USART3
+#endif	/* STM32F10X_USART1_FORK */
 
 #elif defined (STM32F401xx)
 #define USARTx USART2
@@ -86,32 +91,53 @@ void USART_Config(void)
     GPIOB->AFR[0] = 0x00000000UL;// PB6 & 7 -> GPIO_AF_0
 
 #elif defined (STM32F10X_HD)
+
+
+#if defined (STM32F10X_USART1_FORK)
+    /* USE pa9, pa10, usart1 */
+    RCC->APB2ENR |= RCC_APB2Periph_USART1;
+    RCC->APB2ENR |= RCC_APB2Periph_GPIOA;
+    //RCC->APB2ENR |= RCC_APB2Periph_AFIO;
+    
+    GPIOA->CRH &= ~(0xf << ((9-8)*4));
+    GPIOA->CRH &= ~(0xf << ((10-8)*4));
+    GPIOA->CRH |= ((GPIO_Mode_AF_PP & 0xf) | GPIO_Speed_50MHz)  << ((9-8) *4); /* PA9-> AFPP */
+    GPIOA->CRH |= (GPIO_Mode_IPU&0xf) << ((10-8) *4); /* PA10-> Input pull up */
+#else
+    /* USE pb10, pb11, usart3 */
     RCC->APB1ENR |= RCC_APB1Periph_USART3;
     RCC->APB2ENR |= RCC_APB2Periph_GPIOB;
 //    RCC->APB2ENR |= RCC_APB2Periph_AFIO;
 
-    GPIOB->CRH &= ~0xf << ((10-8)*4);
-    GPIOB->CRH &= ~0xf << ((11-8)*4);
+    GPIOB->CRH &= ~(0xf << ((10-8)*4));
+    GPIOB->CRH &= ~(0xf << ((11-8)*4));
     GPIOB->CRH |= (((GPIO_Mode_AF_PP&0xf) | GPIO_Speed_50MHz) << ((10-8) *4));
     GPIOB->CRH |= (((GPIO_Mode_IPU&0xf)) << ((11-8) *4));
-#endif
+#endif	/* STM32F10X_USART1_FORK */
+#endif	/* STM32F10X_HD */
     USARTx->CR1 &= ~USART_CR1_UE; // stop
     USARTx->CR1 |= (USART_Mode_Tx | USART_Mode_Rx);
+#if defined (STM32F10X_USART1_FORK)
+    /* set to 115200 */
+    /* 8M / 115200 = 69.444, 0.444*16=7.104 */
+    USARTx->BRR = 69;
+#else
 #if !defined (STM32F401xx)
     USARTx->BRR = 16; // 8M / 500k = 16
 #else
-            USARTx->BRR = 32; // 16M / 500k = 32
+    USARTx->BRR = 32; // 16M / 500k = 32
 #endif
-
+#endif  /* STM32F10X_USART1_FORK */
+      
 #if !defined (STM32F10X_HD) && !defined (STM32F401xx)
     USARTx->CR2 |= USART_CR2_SWAP;
 #endif
     USARTx->CR1 |= USART_CR1_UE;
 
-#endif
+#endif	/* GD32F350 */
     g.nocomm = 1;
     xdev_out(uputc);
-//    while(1) { xprintf("Hello, world.\n"); ( {  for(volatile int i = 0; i < 100000UL; i++);}); }
+    //while(1) { xprintf("Hello, world.\n"); ( {  for(volatile int i = 0; i < 100000UL; i++);}); }
 }
 
 int USART_NoComm(void)
@@ -130,6 +156,7 @@ void USART_Poll(void)
 #elif defined(STM32F10X_HD) || defined (STM32F401xx)
             g.msg[g.size] = USARTx->DR;
 #endif
+
             g.size++;
         }
         usart_flag_clear1(USARTx, USART_FLAG_RXNE);

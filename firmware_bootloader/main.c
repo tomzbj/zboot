@@ -1,4 +1,4 @@
-#include "misc.h"
+#include "zboot_misc.h"
 #include "usart.h"
 #include "iap.h"
 #include "xprintf.h"
@@ -44,10 +44,38 @@ void SystemInit(void)
 
 }
 
+#if defined (STM32F10X_USART1_FORK)
+int GPIO_Config(){
+  RCC->APB2ENR |= RCC_APB2Periph_GPIOC;
+  GPIOC->CRL &= ~(0xf << (2*4));
+  GPIOC->CRL |= (0b0001 << (2*4)); /* output pp */
+  GPIOC->BSRR |= 2 << 16;	/* set PC2 low to mute beep on board*/
+
+  RCC->APB2ENR |= RCC_APB2Periph_GPIOB;
+  GPIOB->CRH &= ~(0xf << (15-8)*4);
+  GPIOB->CRH |= (GPIO_Mode_IPU&0xf) << ((15-8)*4); /* PB15: input pull-up-down */
+  GPIOB->BSRR |= 1 << 15;			   /* set PB15 to pull up */
+}
+
+int Button_Pushed(){
+  return (GPIOB->IDR & (1<< 15)) ? 0: 1;
+}
+#else
+int Button_Pushed(){ return 0;}	/* always False by default */
+#endif
+
+
 int main(void)
 {
+    volatile int i=0;
     SystemInit();
     SysTick_Config(8000000UL); // delay 1s and then jump to app
+
+#if defined (STM32F10X_USART1_FORK)
+    /* add by Lv: init gpio for better jump control  */
+    GPIO_Config();
+#endif
+    
     IAP_Config();
     USART_Config();
     IAP_Sysinfo_t* inf = IAP_GetInfo();
@@ -57,14 +85,16 @@ int main(void)
 #endif
     while(1) {
         USART_Poll();
-        if(flag_jump)
-            IAP_JumpToApp();
+        if(flag_jump){
+	    // xprintf("jump\n");
+	    IAP_JumpToApp();
+	}
     }
 }
 
 void SysTick_Handler(void)
 {
-    if(IAP_IsAppValid() && USART_NoComm()) {
+    if(IAP_IsAppValid() && USART_NoComm() && !Button_Pushed()) {
         flag_jump = 1;      // do not simply jump from here, use a flag instead
     }
 }

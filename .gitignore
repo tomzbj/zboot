@@ -84,3 +84,5 @@ main_rom.bin
 .cproject
 .settings
 *.bin
+*.t
+TAGS
