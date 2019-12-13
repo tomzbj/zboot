@@ -1,5 +1,5 @@
 #include "flash_eeprom.h"
-#include "misc.h"
+#include "zboot_misc.h"
 
 static struct {
     unsigned long base;

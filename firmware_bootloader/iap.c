@@ -1,4 +1,4 @@
-#include "misc.h"
+#include "zboot_misc.h"
 #include <string.h>
 #include <stdbool.h>
 #include "usart.h"

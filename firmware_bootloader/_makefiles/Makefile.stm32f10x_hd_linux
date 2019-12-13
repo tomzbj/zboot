@@ -1,0 +1,186 @@
+# hardware
+CPU := cortex-m3
+MCU := STM32F10X_HD
+FREQ := 8000000
+FLASH_SIZE := 512K
+MEM_SIZE := 64K
+
+# toolchain
+TRGT = arm-none-eabi-
+CC   = $(TRGT)gcc
+GDB  = $(TRGT)gdb
+CP   = $(TRGT)objcopy
+AS   = $(TRGT)gcc -x assembler-with-cpp
+HEX  = $(CP) -O ihex
+BIN  = $(CP) -O binary
+
+REMOVE = rm -f
+REMOVEDIR = rm -rf
+STLINK := "C:/Program Files (x86)/STMicroelectronics/STM32 ST-LINK Utility/ST-LINK Utility/ST-LINK_CLI.exe" 
+DOXYGEN := doxygen
+PYTHON := "python3"
+IAP  := $(PYTHON) "iap_test.py"
+
+# List all default C defines here, like -D_DEBUG=1
+
+DEBUG = 0
+DDEFS = -D$(shell echo $(MCU))
+DDEFS += -DUSE_STDPERIPH_DRIVER -DHSE_VALUE=$(FREQ)
+DDEFS += -D_DEBUG=$(DEBUG)
+DADEFS =
+DINCDIR =
+DLIBDIR =
+DLIBS =
+# End of default section
+ 
+# Start of user section
+PROJECT = main
+UDEFS = -DSTM32F10X_USART1_FORK
+UADEFS =
+
+# List source files here
+LIB = ../../../../stm32-lib
+STDLIBDIR = $(LIB)/CMSIS_CM3
+CORELIBDIR = $(STDLIBDIR)
+STDPHDRV_DIR = $(LIB)/STM32F10x_StdPeriph_Driver
+STDPHDRV_SRCDIR = $(STDPHDRV_DIR)/src
+STDPHDRV_INCDIR = $(STDPHDRV_DIR)/inc $(STDPHDRV_DIR)
+STARTUPDIR = $(STDLIBDIR)/startup/gcc
+INCDIR = ./inc
+DLIBS = -L _libs -lstm32f10x_hd_8m
+
+## List ASM source files here
+ASRC = $(STARTUPDIR)/startup_$(shell echo $(MCU) | tr A-Z a-z).s
+
+## List C source files here
+SRC = $(wildcard *.c _libs/*.c app/*.c bsp/*.c drv/*.c thirdparty/*/*.c $(CORELIBDIR)/core*.c)
+ASRC += $(wildcard *.s _libs/*.s app/*.s bsp/*/*.s thirdparty/*/*.s) #*/
+
+## List all user directories here
+UINCDIR = . ./_libs $(CORELIBDIR) $(DEV_DIR) $(STDPHDRV_INCDIR)
+UINCDIR += ./thirdparty/xprintf
+
+# List the user directory to look for the libraries here
+ULIBDIR = 
+# List all user libraries here
+ULIBS = 
+# Define optimisation level here
+OPT = -O0
+# End of user defines
+
+# Define linker script file here
+LDSCRIPT = ./_ldscripts/stm32f10x_rom.lds
+FULL_PRJ = $(PROJECT)_rom
+
+INCDIR  = $(patsubst %,-I%,$(DINCDIR) $(UINCDIR))
+LIBDIR  = $(patsubst %,-L%,$(DLIBDIR) $(ULIBDIR))
+
+DEFS    = $(DDEFS) $(UDEFS)
+ADEFS   = $(DADEFS) $(UADEFS)
+OBJS    = $(ASRC:.s=.o) $(SRC:.c=.o)
+LIBS    = $(DLIBS) $(ULIBS)
+MCFLAGS = -mcpu=$(CPU)
+
+ASFLAGS = $(MCFLAGS) -g -gdwarf-2 -mthumb  -Wa,-amhls=$(<:.s=.lst) $(ADEFS)
+CPFLAGS = $(MCFLAGS) $(OPT) -g3 -gdwarf-4 -mthumb -MMD
+CPFLAGS += -Wall -Wstrict-prototypes -Wa,-ahlms=$(<:.c=.lst) $(DEFS)
+CPFLAGS += -ffunction-sections -fdata-sections -std=gnu99
+#LDFLAGS = $(MCFLAGS) -mthumb -T$(LDSCRIPT)
+LDFLAGS = $(MCFLAGS) -mthumb -nostartfiles -T$(LDSCRIPT)
+LDFLAGS += -Wl,-Map=$(FULL_PRJ).map,--cref,--no-warn-mismatch $(LIBDIR)
+LDFLAGS += -fno-common
+
+LDFLAGS += -Wl,--gc-sections -specs=nosys.specs #-u _printf_float -u _scanf_float
+#LDFLAGS += -Wl,--gc-sections -specs=nano.specs #-u _printf_float -u _scanf_float
+
+TEXT =
+# Generate dependency information
+#CPFLAGS += -MMD -MP -MF #.dep/$(@F).d
+
+# makefile rules
+
+.PHONY: all clean
+all: SHELL:=/bin/bash
+all: $(OBJS) $(LDSCRIPT) $(FULL_PRJ).elf $(FULL_PRJ).hex $(FULL_PRJ).bin
+	$(TRGT)size $(PROJECT)_rom.elf
+#	$(TRGT)size $(PROJECT)_rom.elf | usage $(FLASH_SIZE) $(MEM_SIZE)
+
+	@arr=(`$(TRGT)size $(PROJECT)_rom.elf | sed -n '2p'`); \
+	let flash=($${arr[0]}+$${arr[1]}); \
+	let mem=($${arr[1]}+$${arr[2]}); \
+	let flash_size=$(subst K,,$(FLASH_SIZE))*1024; \
+	let mem_size=$(subst K,,$(MEM_SIZE))*1024; \
+	flash_usage=`echo "scale=1;($$flash*100/$$flash_size)" | bc`; \
+	mem_usage=`echo "scale=1;($$mem*100/$$mem_size)" | bc`; \
+	echo "Flash: $$flash / $$flash_size bytes, $$flash_usage% Full (.text + .data)"; \
+	echo "SRAM:  $$mem / $$mem_size bytes, $$mem_usage% Full (.data + .bss)";
+
+%.o: %.c
+	$(CC) -c $(CPFLAGS) -I . $(INCDIR) $< -o $@
+
+%.o: %.s
+	$(AS) -c $(ASFLAGS) $< -o $@
+
+%.lds: %.lds.template
+	sed -e "s/%%FLASH_SIZE%%/$(FLASH_SIZE)/" -e "s/%%MEM_SIZE%%/$(MEM_SIZE)/" $< > $@
+
+%.elf: $(OBJS) $(LDSCRIPT)
+	$(CC) $(OBJS) $(LDFLAGS) $(LIBS) -o $@
+
+%.hex: %.elf
+	$(HEX) $< $@
+
+%.bin: %.elf
+	$(BIN) $< $@
+
+clean:
+	$(REMOVE) $(OBJS)
+	rm $(FULL_PRJ).elf
+	rm $(FULL_PRJ).map
+	rm $(FULL_PRJ).hex
+	rm $(FULL_PRJ).bin
+	rm $(LDSCRIPT)
+	rm $(SRC:.c=.lst)
+	rm $(ASRC:.s=.lst)
+
+.PHONY: flash
+flash_script=reset halt\n\
+flash probe 0\n\
+flash write_image erase $(realpath $(FULL_PRJ).bin) 0x08000000\n\
+reset\n\
+exit
+flash: $(FULL_PRJ).bin
+#@cp $(FULL_PRJ).bin _jtag/flash.bin
+	@echo '$(flash_script)' | nc localhost 4444
+#@rm _jtag/flash.bin
+
+gdb: $(FULL_PRJ).elf
+	$(GDB) -nw --tui $(FULL_PRJ).elf -ex "target remote :3333"
+
+flash_stlink:
+	$(STLINK) -c SWD freq=4000 -P $(FULL_PRJ).hex -V -Rst
+
+reset_stlink:
+	$(STLINK) -c SWD -Rst
+
+doc:
+	@$(DOXYGEN) > dox.tmp
+
+TAGFILES := $(OBJS:.o=.t)
+
+%.t: %.d
+	@cat $< | sed 's/.*://' | tr -d '\\' | tr "\n" " " | xargs -n 1 readlink -f > $@
+
+%.d: %.o
+	@echo >/dev/null	#do nothing, specify dependency only
+
+-include $($(MAIN_OBJS:.o=.d))
+
+tags: $(TAGFILES)
+	@cat $(TAGFILES) | sort | uniq | xargs etags
+
+# Include the dependency files, should be the last of the makefile
+#
+#-include $(shell mkdir .dep 2>/dev/null) $(wildcard .dep/*)
+
+# *** EOF ***
