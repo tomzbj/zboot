@@ -326,7 +326,7 @@ def handle(port, filename):
 
 def main():
     args, parser = get_args()
-    if args.tcp_port is False:
+    if args.tcp_port is None:
         # serial mode
         if args.port is None:       # auto scan!
             port, baudrate = scan(baudrate=args.baudrate)
