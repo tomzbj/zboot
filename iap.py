@@ -184,23 +184,26 @@ class Cli:
         return False
 
 
-def FlashOpFromCmdLine(ser, file):
-    """
-    try:
-        f = open(file, mode='rb')
-    except:
-        print("Failed to open binary file.")
-        exit()
-    img = f.read()
-    f.close() 
-    """
+def FlashOpFromCmdLine(ser, file, file_type):
 
-    try:
-        f = bincopy.BinFile(file)
-    except Exception as e:
-        print("Failed to open ihex file.", e)
-        exit()
-    img = f.as_binary()
+    if file_type == "bin":
+        print("firmware file type is:", file_type)
+        try:
+            f = open(file, mode='rb')
+        except:
+            print("Failed to open binary file.")
+            exit()
+        img = f.read()
+        f.close()
+    else:
+        print("firmware file type is ihex")
+        try:
+            f = bincopy.BinFile(file)
+        except:
+            print("Failed to open ihex file.")
+            exit()
+        img = f.as_binary()
+
     orig_len = len(img)
 
     a = Cli(ser)
@@ -311,15 +314,16 @@ def get_args():
     parser.add_argument('-s', '--serial', dest='port', nargs='?', default=None,
                         help='Name of serial port. "COM*" in windows, "/dev/ttyUSB*" in linux. Will auto scan if omitted. This is the default mode.')
     parser.add_argument('-b', '--baudrate', nargs='?', help='Override baudrate, 500k bps by default.')
+    parser.add_argument('-T', '--type', nargs='?', help='Override input file type, hex file by default, bin file option')
     parser.add_argument('-t', '--tcp', dest='tcp_port', nargs='?',
                         help='TCP mode, waiting for incoming transparent UART passthough connection, listening to port 8899 by default.')
     return parser.parse_args(), parser
 
 
-def handle(port, filename):
+def handle(port, filename, file_type):
     a = Cli(port)
     if filename is not None:
-        FlashOpFromCmdLine(port, filename)
+        FlashOpFromCmdLine(port, filename, file_type)
     else:               # empty filename, probe sysinfo
         print(a.SysInfo())
 
@@ -342,7 +346,7 @@ def main():
                 print("Test pass")
 
         if ser is not None:
-            handle(ser, args.filename)
+            handle(ser, args.filename, args.type)
             ser.close()
     else:
         tcp_port = args.tcp_port if args.tcp_port is not None else 8899
@@ -359,7 +363,7 @@ def main():
                     print("Device not detected")
                 else:
                     print("Test pass")
-                    handle(f, args.filename)
+                    handle(f, args.filename, args.type)
 
 
 if __name__ == '__main__':
