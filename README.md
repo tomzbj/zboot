@@ -51,7 +51,8 @@ app这边需要做的:
     __enable_irq();
 ```
 
-1. 如果是stm32f0系列呢? 它们不提供重定向中断向量表的功能, 所以NVIC_SetVectorTable就没用了. 
+如果是stm32f0系列呢? 它们不提供重定向中断向量表的功能, 所以NVIC_SetVectorTable就没用了. 
+
 不过bootloader还是能用的, 稍微麻烦一点, 需要在main.c最前面加上这几行, 把中断向量表复制到SRAM的起始位置,  然后把复位地址改为指向SRAM起始位置. 
 
 ```
@@ -77,7 +78,7 @@ iap:
 	$(IAP) xxx.hex
 ```
 
-1. 如果要在app里使用eeprom呢? 只要在app里加上flash_eeprom.h和flash_eeprom.c两个文件, 并在使用前先初始化即可:
+如果要在app里使用eeprom呢? 只要在app里加上flash_eeprom.h和flash_eeprom.c两个文件, 并在使用前先初始化即可:
 
 ```
     FLASH_EEPROM_Config(APP_BASE - PAGE_SIZE, PAGE_SIZE);
@@ -98,11 +99,14 @@ iap:
 - read [addr] [size]: 读取指定地址, 包括FLASH/SRAM/外设等均可. 如果读到非法地址会复位.
 - sysinfo: 显示系统信息, 包括FLASH大小, SRAM大小, FLASH单页大小, Bootloader和APP占用空间, EEPROM和APP的起始地址.
 
-## 待更新
+## 注意事项
 
-- 硬件CRC32校验: STM32大部分都有硬件CRC单元(我不确定是否全系都有), 但是操作方式不完全相同. 因此使用硬件CRC32校验的话还需要针对不同型号仔细适配. 此外, 如果需要校验的内容较多, 还需要用DMA来加速.
-- flash_eeprom优化: 目前用的是伪地址方案, 每次写入时按"地址:数据"成对写入, 读取时从后往前查找, 找到第一个匹配的地址即返回. 写入时则是从前往后查找, 找到第一个空地址后写入并返回. 将来这里需要改成二分查找, 能稍微快一点.
-以及, ST官方文档的做法, 写满时是用另一页FLASH作为后备页来轮转, 这样使用SRAM空间较少, 并且不怕掉电. 我这里简单起见, 直接在SRAM中轮转, 如果轮转时正好掉电有可能丢失EEPROM全部数据. 在bootloader里问题不大, app里如果追求可靠性的话应该采用ST官方方案, 或者用大电容+掉电中断来预防.
+- 在STM32F10X上配置GPIO时需要特别注意: 某些情况下需要打开AFIO时钟, 某些情况下需要打开特定的REMAP. 这里可能会花费你很多时间去排查. 在STM32F0/F3上就没这么麻烦了.
+
+- STM32F0/F3支持TX/RX管脚交换, 只需要根据情况加上或者去掉```USARTx->CR2 |= USART_CR2_SWAP;```这一行前面的注释即可. F1/F4如果弄错TX/RX只能重新做板了.
+
+
+
 
 ## 致谢
 
