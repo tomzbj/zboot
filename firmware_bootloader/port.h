@@ -1,8 +1,11 @@
 #ifndef _PORT_H
 #define _PORT_H
 
-#if defined (GD32F350)
+#if defined (GD32F350) 
+#include "gd32f3x0.h"
+#define FLASH_PAGE_SIZE 1024
 
+#elif defined (GD32F330) 
 #include "gd32f3x0.h"
 #define FLASH_PAGE_SIZE 1024
 
@@ -32,7 +35,7 @@
 
 #endif
 
-#if defined (GD32F350) || defined (GD32F130_150)
+#if defined (GD32F350) || defined (GD32F130_150) || defined (GD32F330)
 
 #define FLASH_Unlock() fmc_unlock()
 #define FLASH_Lock() fmc_lock()

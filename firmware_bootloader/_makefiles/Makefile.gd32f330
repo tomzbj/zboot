@@ -1,9 +1,9 @@
 # hardware
 CPU := cortex-m4
-MCU := GD32F350
+MCU := GD32F330
 FREQ := 8000000
-FLASH_SIZE := 128K
-MEM_SIZE := 16K
+FLASH_SIZE := 16K
+MEM_SIZE := 4K
 
 # toolchain
 TRGT = arm-none-eabi-
@@ -66,7 +66,7 @@ OPT = -Os
 # End of user defines
 
 # Define linker script file here
-LDSCRIPT = ./_ldscripts/gd32f350_rom.lds
+LDSCRIPT = ./_ldscripts/gd32f3x0_rom.lds
 FULL_PRJ = $(PROJECT)_rom
  
 INCDIR  = $(patsubst %,-I%,$(DINCDIR) $(UINCDIR))
