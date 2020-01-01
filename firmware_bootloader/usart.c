@@ -28,7 +28,12 @@
 #endif	/* STM32F10X_USART1_FORK */
 
 #elif defined (STM32F401xx)
+
+#ifdef IAP_USE_UART1
+#define USARTx USART1
+#else
 #define USARTx USART2
+#endif
 
 #elif defined (STM32F401xx)
 #define USARTx USART2
@@ -69,6 +74,19 @@ void USART_Config(void)
 
 //#elif 1
 #elif defined (STM32F401xx)
+#ifdef IAP_USE_UART1
+    /* UART1: PB6 PB7 */
+    RCC->APB2ENR |= RCC_APB2Periph_USART1;
+    RCC->AHB1ENR |= RCC_AHB1Periph_GPIOB;
+
+    GPIOB->OSPEEDR |= (GPIO_Speed_100MHz << (6 * 2)) | (GPIO_Speed_100MHz << (7 * 2));
+    GPIOB->OTYPER |= (GPIO_OType_PP << (6 )) | (GPIO_OType_PP << (7));
+    GPIOB->MODER |= (GPIO_Mode_AF << (6 * 2)) | (GPIO_Mode_AF << (7 * 2));
+    GPIOB->PUPDR |= (GPIO_PuPd_NOPULL << (6 * 2)) | (GPIO_PuPd_NOPULL << (7 * 2));
+    GPIO_PinAFConfig(GPIOB, GPIO_PinSource6, GPIO_AF_USART1);
+    GPIO_PinAFConfig(GPIOB, GPIO_PinSource7, GPIO_AF_USART1);
+#else
+    /* UART2: PA2 PA3 */
     RCC->APB1ENR |= RCC_APB1Periph_USART2;
     RCC->AHB1ENR |= RCC_AHB1Periph_GPIOA;
 
@@ -78,7 +96,7 @@ void USART_Config(void)
     GPIOA->PUPDR |= (GPIO_PuPd_NOPULL << (2 * 2)) | (GPIO_PuPd_NOPULL << (3 * 2));
     GPIO_PinAFConfig(GPIOA, GPIO_PinSource2, GPIO_AF_USART2);
     GPIO_PinAFConfig(GPIOA, GPIO_PinSource3, GPIO_AF_USART2);
-
+#endif
 #elif defined (STM32F072) || defined (STM32F042) || defined (STM32F030)
     RCC->APB2ENR |= RCC_APB2Periph_USART1;
     RCC->AHBENR |= RCC_AHBPeriph_GPIOB;
