@@ -137,7 +137,7 @@ void USART_Config(void)
 #endif	/* GD32F350 */
     g.nocomm = 1;
     xdev_out(uputc);
-    //while(1) { xprintf("Hello, world.\n"); ( {  for(volatile int i = 0; i < 100000UL; i++);}); }
+//    while(1) { xprintf("Hello, world.\n"); ( {  for(volatile int i = 0; i < 100000UL; i++);}); }
 }
 
 int USART_NoComm(void)
