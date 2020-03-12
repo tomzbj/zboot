@@ -41,8 +41,7 @@ static struct {
     int nocomm;
 } g;
 
-void USART_Config(void)
-{
+void USART_Config(void) {
 #if defined (GD32F350) || defined (GD32F130_150) || defined (GD32F330)
     RCU_REG_VAL(RCU_USART0) |= BIT(RCU_BIT_POS(RCU_USART0));
     RCU_REG_VAL(RCU_GPIOA) |= BIT(RCU_BIT_POS(RCU_GPIOA));
@@ -81,14 +80,14 @@ void USART_Config(void)
 
 #elif defined (STM32F072) || defined (STM32F042) || defined (STM32F030)
     RCC->APB2ENR |= RCC_APB2Periph_USART1;
-    RCC->AHBENR |= RCC_AHBPeriph_GPIOB;
+    RCC->AHBENR |= RCC_AHBPeriph_GPIOA;
 
-    GPIOB->OSPEEDR |= (GPIO_Speed_50MHz << (6 * 2)) | (GPIO_Speed_50MHz << (7 * 2));
-    GPIOB->OTYPER |= (GPIO_OType_PP << (6 * 2)) | (GPIO_OType_PP << (7 * 2));
-//    GPIOB->MODER |= (GPIO_Mode_OUT << (6 * 2)) | (GPIO_Mode_OUT << (7 * 2));
-    GPIOB->MODER |= (GPIO_Mode_AF << (6 * 2)) | (GPIO_Mode_AF << (7 * 2));
-    GPIOB->PUPDR |= (GPIO_PuPd_NOPULL << (6 * 2)) | (GPIO_PuPd_NOPULL << (7 * 2));
-    GPIOB->AFR[0] = 0x00000000UL;// PB6 & 7 -> GPIO_AF_0
+    GPIOA->OSPEEDR |= (GPIO_Speed_50MHz << (9 * 2)) | (GPIO_Speed_50MHz << (10 * 2));
+    GPIOA->OTYPER |= (GPIO_OType_PP << (9 * 2)) | (GPIO_OType_PP << (10 * 2));
+//    GPIOA->MODER |= (GPIO_Mode_OUT << (9 * 2)) | (GPIO_Mode_OUT << (10 * 2));
+    GPIOA->MODER |= (GPIO_Mode_AF << (9 * 2)) | (GPIO_Mode_AF << (10 * 2));
+    GPIOA->PUPDR |= (GPIO_PuPd_NOPULL << (9 * 2)) | (GPIO_PuPd_NOPULL << (10 * 2));
+    GPIOA->AFR[1] = 0x00000110UL;// PA9 & 10 -> GPIO_AF_1
 
 #elif defined (STM32F10X_HD)
 
@@ -118,9 +117,7 @@ void USART_Config(void)
     USARTx->CR1 &= ~USART_CR1_UE; // stop
     USARTx->CR1 |= (USART_Mode_Tx | USART_Mode_Rx);
 #if defined (STM32F10X_USART1_FORK)
-    /* set to 115200 */
-    /* 8M / 115200 = 69.444, 0.444*16=7.104 */
-    USARTx->BRR = 69;
+    USARTx->BRR = 69;	// 8M / 115200 = 69.4
 #else
 #if !defined (STM32F401xx)
     USARTx->BRR = 16; // 8M / 500k = 16
@@ -128,27 +125,25 @@ void USART_Config(void)
     USARTx->BRR = 32; // 16M / 500k = 32
 #endif
 #endif  /* STM32F10X_USART1_FORK */
-      
+
 #if !defined (STM32F10X_HD) && !defined (STM32F401xx)
-    USARTx->CR2 |= USART_CR2_SWAP;
+//    USARTx->CR2 |= USART_CR2_SWAP;	// comment or uncomment this line if needed
 #endif
     USARTx->CR1 |= USART_CR1_UE;
 
 #endif	/* GD32F350 */
     g.nocomm = 1;
     xdev_out(uputc);
-//    while(1) { xprintf("Hello, world.\n"); ( {  for(volatile int i = 0; i < 100000UL; i++);}); }
+//    while(1) { xprintf("Hello, world.\n"); ( {  for(volatile int i = 0; i < 100000UL; i++);}); }	// for debug
 }
 
-int USART_NoComm(void)
-{
+int USART_NoComm(void) {
     return g.nocomm;
 }
 
-void USART_Poll(void)
-{
-    if(usart_flag_get1(USARTx, USART_FLAG_RXNE)) {
-        if(g.size < MAX_LEN) {
+void USART_Poll(void) {
+    if (usart_flag_get1(USARTx, USART_FLAG_RXNE)) {
+        if (g.size < MAX_LEN) {
 #if defined(GD32F350) || defined (GD32F130_150) || defined (GD32F330)
             g.msg[g.size] = USART_RDATA(USARTx);
 #elif defined(STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F042)
@@ -161,12 +156,11 @@ void USART_Poll(void)
         }
         usart_flag_clear1(USARTx, USART_FLAG_RXNE);
     }
-    if(usart_flag_get1(USARTx, USART_FLAG_IDLE)) {
-        if(strncasecmp((char*)g.msg, "##", 2) == 0) {
+    if (usart_flag_get1(USARTx, USART_FLAG_IDLE)) {
+        if (strncasecmp((char*) g.msg, "##", 2) == 0) {
             CLI_Parse(g.msg, g.size);
             g.nocomm = 0;
-        }
-        else if(g.msg[0] >= 0x80) {
+        } else if (g.msg[0] >= 0x80) {
             IAP_Parse(g.msg, g.size);
             g.nocomm = 0;
         }
@@ -179,7 +173,7 @@ void USART_Poll(void)
         usart_flag_clear1(USARTx, USART_FLAG_IDLE);
 #endif
     }
-    if(usart_flag_get1(USARTx, USART_FLAG_ORE)) {
+    if (usart_flag_get1(USARTx, USART_FLAG_ORE)) {
 #if defined(STM32F10X_HD)
         volatile unsigned long tmp = tmp;
         tmp = USARTx->SR;
@@ -188,7 +182,7 @@ void USART_Poll(void)
         usart_flag_clear1(USARTx, USART_FLAG_ORE);
 #endif
     }
-    if(usart_flag_get1(USARTx, USART_FLAG_FE)) {
+    if (usart_flag_get1(USARTx, USART_FLAG_FE)) {
 #if defined(STM32F10X_HD)
         volatile unsigned long tmp = tmp;
         tmp = USARTx->SR;
@@ -199,14 +193,12 @@ void USART_Poll(void)
     }
 }
 
-void uwrite(const void* data, int size)
-{
-    while(size--)
-        uputc(*(unsigned char*)data++);
+void uwrite(const void *data, int size) {
+    while (size--)
+        uputc(*(unsigned char*) data++);
 }
 
-void uputc(unsigned char c)
-{
+void uputc(unsigned char c) {
     ( {  while(RESET == usart_flag_get1(USARTx, USART_FLAG_TXE));});
 #if defined (GD32F350) || defined (GD32F130_150) || defined (GD32F330)
     USART_TDATA (USARTx) = (USART_TDATA_TDATA & c);

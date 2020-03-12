@@ -10,6 +10,7 @@
 
 #define MSG_LEN 128
 
+#if _USE_EEPROM
 const char* str_help =
     " empty: empty check app area.\n\
  erase_all: erase app.\n\
@@ -18,11 +19,6 @@ const char* str_help =
  read: read flash/sram/periph.\n\
  help: show help.\n\
  sysinfo: show system info.\n";
-
-static void Done(void)
-{
-    xprintf("Done.\n");
-}
 
 static void EEPROM_View(unsigned short addr, unsigned short total_size)
 {
@@ -46,12 +42,28 @@ static void EEPROM_View(unsigned short addr, unsigned short total_size)
     }
 }
 
+#else
+const char* str_help =
+    " empty: empty check app area.\n\
+ erase_all: erase app.\n\
+ reboot: reboot system.\n\
+ read: read flash/sram/periph.\n\
+ help: show help.\n\
+ sysinfo: show system info.\n";
+#endif
+
+static void Done(void)
+{
+    xprintf("Done.\n");
+}
+
 static void Parse(char* const tokens[], int count)
 {
     IAP_Sysinfo_t* inf = IAP_GetInfo();
 
     if(strcasecmp(tokens[0], "HELP") == 0)
         xputs(str_help);
+#if _USE_EEPROM
     else if(strcasecmp(tokens[0], "EEPROM") == 0) {
         if(strcasecmp(tokens[1], "GETSIZE") == 0) {
             xprintf("%u Bytes\n", FLASH_EEPROM_GetSize());
@@ -79,6 +91,7 @@ static void Parse(char* const tokens[], int count)
             Done();
         }
     }
+#endif
     else if(strcasecmp(tokens[0], "READ") == 0) {
         unsigned long addr = strtoul(tokens[1], NULL, 16);
         int size = strtoul(tokens[2], NULL, 10);
@@ -104,8 +117,11 @@ static void Parse(char* const tokens[], int count)
         xprintf("Bootloader/APP Sizes:  %uB(%uKB)/%uKB\n",
             inf->bootloader_size,
             (inf->bootloader_size - 1) / 1024 + 1, inf->max_app_size / 1024);
-        xprintf("EEPROM/APP Base addr:  0x%08lX/0x%08lx\n", inf->eeprom_base,
-            inf->app_base);
+#if _USE_EEPROM
+        xprintf("EEPROM/APP Base addr:  0x%08lX/0x%08lx\n", inf->eeprom_base, inf->app_base);
+#else
+        xprintf("APP Base addr:  0x%08lx\n", inf->app_base);
+#endif
     }
     else if(strcasecmp(tokens[0], "EMPTY") == 0) {
         if(IAP_CheckEmpty((unsigned long*)inf->app_base, inf->max_app_size))
@@ -135,18 +151,8 @@ void CLI_Parse(const char* msg, int size)
     for(i = 0; i < size; i++) {
         if(isalpha((int)string[i]))
             string[i] = toupper((int)string[i]);
-//            string[i] += ('A' - 'a');
     }
-
-//    len = strlen(string);
-    /*
-     while(string[len - 1] == '\n' || string[len - 1] == '\r') {
-     string[len - 1] = '\0';
-     len--;
-     }
-     */
     token = strtok(string, seps);
-
     while(token != NULL) {
         tokens[count] = token;
         count++;
@@ -154,6 +160,5 @@ void CLI_Parse(const char* msg, int size)
     }
     if(count == 0)
         return;
-
     Parse(tokens, count);
 }

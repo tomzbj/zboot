@@ -25,6 +25,7 @@ arm-none-eabi-gcc 4.9.3. Keil或IAR用户可能需要手动修改链接脚本和
 - (在STM32F042上占用9K FLASH.)
 - 在FLASH每页2K的MCU上共占用10K FLASH, 提供512字节EEPROM空间.
 - 在STM32F401上共占用32K FLASH, 提供4096字节EEPROM空间. (尚未充分测试!)
+- 如果不使用EEPROM (修改zboot_misc.h中的宏定义), 可以节约2K FLASH.
 
 ## 时钟及波特率
 
@@ -84,6 +85,9 @@ iap:
 ```
     FLASH_EEPROM_Config(APP_BASE - PAGE_SIZE, PAGE_SIZE);
 ```
+
+如果不需要使用EEPROM呢? 在zboot_misc.h里把_USE_EEPROM后面的1改为0, 这样可以再节约2K flash.
+
 ## 命令行操作
 
 所有命令前面需要加上##.
@@ -104,10 +108,7 @@ iap:
 
 - 在STM32F10X上配置GPIO时需要特别注意: 某些情况下需要打开AFIO时钟, 某些情况下需要打开特定的REMAP. 这里可能会花费你很多时间去排查. 在STM32F0/F3上就没这么麻烦了.
 
-- STM32F0/F3支持TX/RX管脚交换, 只需要根据情况加上或者去掉```USARTx->CR2 |= USART_CR2_SWAP;```这一行前面的注释即可. F1/F4如果弄错TX/RX只能重新做板了.
-
-
-
+- STM32F0/F3支持TX/RX管脚交换, 只需要根据情况加上或者去掉```USARTx->CR2 |= USART_CR2_SWAP;```这一行前面的注释即可. F1/F4如果弄错TX/RX只能重新做板了.  
 
 ## 致谢
 

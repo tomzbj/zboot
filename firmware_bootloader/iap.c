@@ -59,12 +59,18 @@ void IAP_Config(void)
 #endif
 
     g.sram_size = ((unsigned long)&_estack - (unsigned long)&_sdata) / 1024;
-
+#if _USE_EEPROM
     g.eeprom_base = FLASH_BASE + g.bootloader_size;
     while(g.eeprom_base % FLASH_PAGE_SIZE) {
         g.eeprom_base++;
     }
     g.app_base = g.eeprom_base + FLASH_PAGE_SIZE;
+#else
+    g.app_base = g.eeprom_base = FLASH_BASE + g.bootloader_size;
+    while(g.app_base% FLASH_PAGE_SIZE) {
+        g.app_base++;
+    }
+#endif
     g.max_app_size = FLASH_BASE + g.flash_size * 1024 - g.app_base;
 }
 

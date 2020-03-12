@@ -7,8 +7,7 @@
 
 static int flag_jump = 0;
 
-void SystemInit(void)
-{
+void SystemInit(void) {
 #if defined (GD32F350) || defined (GD32F130_150)
 //    rcu_deinit();
     RCU_APB2EN = BIT(0);
@@ -61,56 +60,53 @@ int Button_Pushed(void) {
     return (GPIOB->IDR & (1<< 15)) ? 0: 1;
 }
 #else
-int Button_Pushed(void)
-{
-    return 0;
+int Button_Pushed(void) {
+	return 0;
 } /* always False by default */
 #endif
 
-int main(void)
-{
-    SystemInit();
-    SysTick_Config(8000000UL); // delay 1s and then jump to app
+int main(void) {
+	SystemInit();
+	SysTick_Config(8000000UL); // delay 1s and then jump to app
 
 #if defined (STM32F10X_USART1_FORK)
     /* add by Lv: init gpio for better jump control  */
     GPIO_Config();
 #endif
 
-    IAP_Config();
-    USART_Config();
-    IAP_Sysinfo_t* inf = IAP_GetInfo();
-    FLASH_EEPROM_Config(inf->eeprom_base, FLASH_PAGE_SIZE);
+	IAP_Config();
+	USART_Config();
+#if _USE_EEPROM
+	IAP_Sysinfo_t *inf = IAP_GetInfo();
+	FLASH_EEPROM_Config(inf->eeprom_base, FLASH_PAGE_SIZE);
+#endif
+
 #if defined (GD32F350) || defined (STM32F303xC) || defined (STM32F10X_HD) || defined (GD32F130_150)
     *(unsigned long*)0xe000ed24 = 0x00070000; // enable usage fault
 #endif
-    while(1) {
-        USART_Poll();
-        if(flag_jump) {
-            // xprintf("jump\n");
-            IAP_JumpToApp();
-        }
-    }
+	while (1) {
+		USART_Poll();
+		if (flag_jump) {
+			// xprintf("jump\n");
+			IAP_JumpToApp();
+		}
+	}
 }
 
-void SysTick_Handler(void)
-{
-    if(IAP_IsAppValid() && USART_NoComm() && !Button_Pushed()) {
-        flag_jump = 1;      // do not simply jump from here, use a flag instead
-    }
+void SysTick_Handler(void) {
+	if (IAP_IsAppValid() && USART_NoComm() && !Button_Pushed()) {
+		flag_jump = 1;      // do not simply jump from here, use a flag instead
+	}
 }
 
-void BusFault_Handler(void)
-{
+void BusFault_Handler(void) {
 #if defined (GD32F350) || defined (STM32F303xC) || defined (STM32F10X_HD) || defined (GD32F130_150)
     if(SCB->CFSR & 0x0200) {
         xprintf("Read error @ %08lx\n", (unsigned long)(SCB->BFAR));
     }
 #endif
-    NVIC_SystemReset();
-    while(1)
-        ;
+	NVIC_SystemReset();
+({	while (1);});
 }
-void _init(void)
-{
+void _init(void) {
 }
