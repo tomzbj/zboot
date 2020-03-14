@@ -76,11 +76,13 @@ APP_BASE的值是前面提到过的0x08002000/0x08002800之类. __enable_irq()�
 
 1. 可以在app的Makefile里增加一条目标iap, 这样更新程序时只要执行make iap即可, 省太多事了.
 
+
     PYTHON := "py.exe"
-    IAP  := $(PYTHON) "iap.py
+    IAP := $(PYTHON) iap.py
     ...
     iap:
         $(IAP) xxx.hex
+
 
 如果要在app里使用eeprom呢? 只要在app里加上flash_eeprom.h和flash_eeprom.c两个文件, 并在使用前先初始化即可:
 
