@@ -8,7 +8,7 @@
 #define MAX_LEN 640
 
 #if defined (GD32F350)  || defined (GD32F130_150) || defined (GD32F330)
-#define USARTx USART0
+#define USARTx USART1
 
 #elif defined (STM32F303xC)
 #define USARTx USART3
@@ -43,11 +43,11 @@ static struct {
 
 void USART_Config(void) {
 #if defined (GD32F350) || defined (GD32F130_150) || defined (GD32F330)
-    RCU_REG_VAL(RCU_USART0) |= BIT(RCU_BIT_POS(RCU_USART0));
+    RCU_REG_VAL(RCU_USART1) |= BIT(RCU_BIT_POS(RCU_USART1));
     RCU_REG_VAL(RCU_GPIOA) |= BIT(RCU_BIT_POS(RCU_GPIOA));
-    gpio_af_set(GPIOA, GPIO_AF_1, GPIO_PIN_9 | GPIO_PIN_10);
-    gpio_mode_set(GPIOA, GPIO_MODE_AF, GPIO_PUPD_PULLUP, GPIO_PIN_9 | GPIO_PIN_10);
-    gpio_output_options_set(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_10MHZ, GPIO_PIN_9);
+    gpio_af_set(GPIOA, GPIO_AF_1, GPIO_PIN_2 | GPIO_PIN_3);
+    gpio_mode_set(GPIOA, GPIO_MODE_AF, GPIO_PUPD_PULLUP, GPIO_PIN_2 | GPIO_PIN_3);
+    gpio_output_options_set(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_10MHZ, GPIO_PIN_2);
     usart_deinit(USARTx); /* USART configure */
     USART_CTL0 (USARTx) = 0x0000000c;
     USART_CTL1 (USARTx) = 0x00000000;
@@ -157,10 +157,15 @@ void USART_Poll(void) {
         usart_flag_clear1(USARTx, USART_FLAG_RXNE);
     }
     if (usart_flag_get1(USARTx, USART_FLAG_IDLE)) {
-        if (strncasecmp((char*) g.msg, "##", 2) == 0) {
+        if(0) {
+        }
+#if _USE_CLI
+        else if (strncasecmp((char*) g.msg, "##", 2) == 0) {
             CLI_Parse(g.msg, g.size);
             g.nocomm = 0;
-        } else if (g.msg[0] >= 0x80) {
+        }
+#endif
+        else if (g.msg[0] >= 0x80) {
             IAP_Parse(g.msg, g.size);
             g.nocomm = 0;
         }

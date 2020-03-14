@@ -26,6 +26,7 @@ arm-none-eabi-gcc 4.9.3. Keil或IAR用户可能需要手动修改链接脚本和
 - 在FLASH每页2K的MCU上共占用10K FLASH, 提供512字节EEPROM空间.
 - 在STM32F401上共占用32K FLASH, 提供4096字节EEPROM空间. (尚未充分测试!)
 - 如果不使用EEPROM (修改zboot_misc.h中的宏定义), 可以节约2K FLASH.
+- 如果不使用命令行界面，总占用FLASH可以降到2-3K. (未充分测试.)
 
 ## 时钟及波特率
 
@@ -35,7 +36,7 @@ arm-none-eabi-gcc 4.9.3. Keil或IAR用户可能需要手动修改链接脚本和
 
 选择对应型号的Makefile, 并在usart.c里修改用到的usart外设和管脚即可. 
 
-之后可以执行make.bat, 选择mcu型号, 即可编译出所需要的bootloader.
+之后可以执行build.bat, 选择mcu型号, 即可编译出所需要的bootloader.
 
 上位机见根目录的iap.py, python 3.6.4和python 3.7.1实测正常工作. 
 
@@ -87,6 +88,8 @@ iap:
 ```
 
 如果不需要使用EEPROM呢? 在zboot_misc.h里把_USE_EEPROM后面的1改为0, 这样可以再节约2K flash.
+
+如果不需要使用命令行界面, 可以在zboot_misc.h里再把_USE_CLI后面的1改为0. 这样总的flash空间用量可降到2或3K.
 
 ## 命令行操作
 

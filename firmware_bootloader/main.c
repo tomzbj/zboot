@@ -106,7 +106,7 @@ void BusFault_Handler(void) {
     }
 #endif
 	NVIC_SystemReset();
-({	while (1);});
+    ({	while (1);});
 }
 void _init(void) {
 }
