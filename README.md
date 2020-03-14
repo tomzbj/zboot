@@ -53,40 +53,45 @@ app这边需要做的:
 1. main.c在最前面加上两行, 其中VECT_TAB_OFFSET的值是0x2000或0x2800. STM32F401为0x8000.
 ( 如果不使用EEPROM, 入口地址应该是0x08001800或0x08002000. 如果不使用命令行界面, 则需要自行计算app区入口地址. 你的Makefile和main.c等处也要做相应调整. )
 
-    NVIC_SetVectorTable(NVIC_VectTab_FLASH, VECT_TAB_OFFSET);
-    __enable_irq();
+```c
+NVIC_SetVectorTable(NVIC_VectTab_FLASH, VECT_TAB_OFFSET);
+__enable_irq();
+```
 
 如果是stm32f0系列呢? 它们不提供重定向中断向量表的功能, 所以NVIC_SetVectorTable就没用了. 
 
-不过bootloader还是能用的, 稍微麻烦一点, 需要在main.c最前面加上这几行, 把中断向量表复制到SRAM的起始位置,  然后把复位地址改为指向SRAM起始位置. 
+不过bootloader还是能用的, 稍微麻烦一点, 需要在main.c最前面加上这几行, 把中断向量表复制到SRAM的起始位置,  然后把复位地址改为指向SRAM起始位置.  
 
-
-    memcpy((void*)(0x20000000), (void*)APP_BASE, 256);
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
-    SYSCFG_MemoryRemapConfig(SYSCFG_MemoryRemap_SRAM);
-    __enable_irq(); 
+```c
+memcpy((void*)(0x20000000), (void*)APP_BASE, 256);
+RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
+SYSCFG_MemoryRemapConfig(SYSCFG_MemoryRemap_SRAM);
+__enable_irq(); 
+```
    
 APP_BASE的值是前面提到过的0x08002000/0x08002800之类. __enable_irq()则还是需要的. 此外, .ld/.lds文件里SRAM起始位置需要改为0x20000100, LENGTH要减去256.
 
 ## 使用方法
 
-1. 上电启动同时执行py iap.py xxx.hex即可. (启动延迟约1s后自动跳转到app.) 
+1. 上电启动同时执行`py iap.py xxx.hex`即可. (启动延迟约1s后自动跳转到app.) 
 
-1. 如果需要一键iap, 应该怎么操作呢? 需要在app里响应命令"## REBOOT"后, 先向串口输出任意字符, 然后执行NVIC_SystemReset()即可. 如果是stm32f0xx, 则还要先执行SYSCFG_MemoryRemapConfig(SYSCFG_MemoryRemap_Flash), 把系统起始位置改回FLASH. 
+1. 如果需要一键iap, 应该怎么操作呢? 需要在app里响应命令"## REBOOT"后, 先向串口输出任意字符, 然后执行`NVIC_SystemReset()`即可. 如果是stm32f0xx, 则还要先执行`SYSCFG_MemoryRemapConfig(SYSCFG_MemoryRemap_Flash)`, 把系统起始位置改回FLASH. 
 
 1. 可以在app的Makefile里增加一条目标iap, 这样更新程序时只要执行make iap即可, 省太多事了.
 
-
-    PYTHON := "py.exe"
-    IAP := $(PYTHON) iap.py
-    ...
-    iap:
-        $(IAP) xxx.hex
-
+```python
+PYTHON := "py.exe"
+IAP := $(PYTHON) iap.py
+...
+iap:
+    $(IAP) xxx.hex
+```
 
 如果要在app里使用eeprom呢? 只要在app里加上flash_eeprom.h和flash_eeprom.c两个文件, 并在使用前先初始化即可:
 
-    FLASH_EEPROM_Config(APP_BASE - PAGE_SIZE, PAGE_SIZE);
+```c
+FLASH_EEPROM_Config(APP_BASE - PAGE_SIZE, PAGE_SIZE);
+```
 
 如果不需要使用EEPROM呢? 在zboot_misc.h里把_USE_EEPROM后面的1改为0, 这样可以再节约2K flash.
 
@@ -96,6 +101,7 @@ APP_BASE的值是前面提到过的0x08002000/0x08002800之类. __enable_irq()�
 
 所有命令前面需要加上##.
 
+```
 - help: 显示帮助.
 - empty: 检查app区是否为空.
 - erase_all: 擦除app区全部内容.
@@ -107,12 +113,13 @@ APP_BASE的值是前面提到过的0x08002000/0x08002800之类. __enable_irq()�
 - reboot: 复位.
 - read [addr] [size]: 读取指定地址, 包括FLASH/SRAM/外设等均可. 如果读到非法地址会复位.
 - sysinfo: 显示系统信息, 包括FLASH大小, SRAM大小, FLASH单页大小, Bootloader和APP占用空间, EEPROM和APP的起始地址.
+```
 
 ## 注意事项
 
 - 在STM32F10X上配置GPIO时需要特别注意: 某些情况下需要打开AFIO时钟, 某些情况下需要打开特定的REMAP. 这里可能会花费你很多时间去排查. 在STM32F0/F3/F4上就没这么麻烦了.
 
-- STM32F0/F3支持TX/RX管脚交换, 只需要根据情况加上或者去掉```USARTx->CR2 |= USART_CR2_SWAP;```这一行前面的注释即可. F1/F4如果弄错TX/RX, 要么费点劲飞线, 要么就得重新做板了.  
+- STM32F0/F3支持TX/RX管脚交换, 只需要根据情况加上或者去掉`USARTx->CR2 |= USART_CR2_SWAP;`这一行前面的注释即可. F1/F4如果弄错TX/RX, 要么费点劲飞线, 要么就得重新做板了.  
 
 ## 致谢
 
