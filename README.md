@@ -30,13 +30,13 @@ arm-none-eabi-gcc 4.9.3. Keil或IAR用户可能需要手动修改链接脚本和
 
 ## 时钟及波特率
 
-为了时钟配置简单起见, bootloader在8M HSI时钟运行. 串口波特率定为500kbps.
+为了时钟配置简单起见, bootloader以8M HSI时钟运行. 串口波特率定为8M / 16 = 500kbps.
 
-## 使用方法
+## 配置流程
 
-选择对应型号的Makefile, 并在usart.c里修改用到的usart外设和管脚即可. 
+在usart.c里修改用到的usart外设和管脚, 需要仔细对照自己的stm32型号.
 
-之后可以执行build.bat, 选择mcu型号, 即可编译出所需要的bootloader.
+之后执行build.bat, 选择mcu型号, 即可编译出所需要的bootloader.
 
 上位机见根目录的iap.py, python 3.6.4和python 3.7.1实测正常工作. 
 
@@ -44,28 +44,31 @@ arm-none-eabi-gcc 4.9.3. Keil或IAR用户可能需要手动修改链接脚本和
 
 app这边需要做的:
 
-1. 写入bootloader后先在串口命令行执行## sysinfo, 取得app区的入口地址, 应该是0x08002000或0x08002800. STM32F401则是0x08008000.
-1. 修改链接文件(.ld或.lds, 在不同开发环境下可能不同), 把FLASH区的起始地址改为上面的入口地址,  LENGTH要根据页大小减去8K或10K. STM32F401要减去32K.
-1. Makefile或者其他类似指定了FLASH大小的场合, 要减去8K或10K. STM32F401要减去32K.
-1. main.c在最前面加上两行, 其中VECT_TAB_OFFSET的值是0x2000或0x2800. STM32F401为0x8000.
+1. 写入bootloader后先在串口命令行执行## sysinfo, 取得app区的入口地址, 应该是0x08002000或0x08002800. STM32F401则是0x08008000. 
 
-```
+1. 修改你的app项目的链接文件(.ld或.lds, 在不同开发环境下可能不同), 把FLASH区的起始地址改为上面的入口地址,  LENGTH要根据页大小减去8K或10K. STM32F401要减去32K.
+
+1. Makefile或者其他类似指定了FLASH大小的场合, 要减去8K或10K. STM32F401要减去32K.
+
+1. main.c在最前面加上两行, 其中VECT_TAB_OFFSET的值是0x2000或0x2800. STM32F401为0x8000.
+( 如果不使用EEPROM, 入口地址应该是0x08001800或0x08002000. 如果不使用命令行界面, 则需要自行计算app区入口地址. 你的Makefile和main.c等处也要做相应调整. )
+
     NVIC_SetVectorTable(NVIC_VectTab_FLASH, VECT_TAB_OFFSET);
     __enable_irq();
-```
 
 如果是stm32f0系列呢? 它们不提供重定向中断向量表的功能, 所以NVIC_SetVectorTable就没用了. 
 
 不过bootloader还是能用的, 稍微麻烦一点, 需要在main.c最前面加上这几行, 把中断向量表复制到SRAM的起始位置,  然后把复位地址改为指向SRAM起始位置. 
 
-```
+
     memcpy((void*)(0x20000000), (void*)APP_BASE, 256);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
     SYSCFG_MemoryRemapConfig(SYSCFG_MemoryRemap_SRAM);
-    __enable_irq();
-```    
+    __enable_irq(); 
+   
+APP_BASE的值是前面提到过的0x08002000/0x08002800之类. __enable_irq()则还是需要的. 此外, .ld/.lds文件里SRAM起始位置需要改为0x20000100, LENGTH要减去256.
 
-APP_BASE的值是前面提到过的0x08002000/0x08002800. __enable_irq()则还是需要的. 此外, .ld/.lds文件里SRAM起始位置需要改为0x20000100, LENGTH要减去256.
+## 使用方法
 
 1. 上电启动同时执行py iap.py xxx.hex即可. (启动延迟约1s后自动跳转到app.) 
 
@@ -73,19 +76,15 @@ APP_BASE的值是前面提到过的0x08002000/0x08002800. __enable_irq()则还�
 
 1. 可以在app的Makefile里增加一条目标iap, 这样更新程序时只要执行make iap即可, 省太多事了.
 
-```
-PYTHON := "py.exe"
-IAP  := $(PYTHON) "iap.py
-...
-iap:
-	$(IAP) xxx.hex
-```
+    PYTHON := "py.exe"
+    IAP  := $(PYTHON) "iap.py
+    ...
+    iap:
+        $(IAP) xxx.hex
 
 如果要在app里使用eeprom呢? 只要在app里加上flash_eeprom.h和flash_eeprom.c两个文件, 并在使用前先初始化即可:
 
-```
     FLASH_EEPROM_Config(APP_BASE - PAGE_SIZE, PAGE_SIZE);
-```
 
 如果不需要使用EEPROM呢? 在zboot_misc.h里把_USE_EEPROM后面的1改为0, 这样可以再节约2K flash.
 
@@ -109,9 +108,9 @@ iap:
 
 ## 注意事项
 
-- 在STM32F10X上配置GPIO时需要特别注意: 某些情况下需要打开AFIO时钟, 某些情况下需要打开特定的REMAP. 这里可能会花费你很多时间去排查. 在STM32F0/F3上就没这么麻烦了.
+- 在STM32F10X上配置GPIO时需要特别注意: 某些情况下需要打开AFIO时钟, 某些情况下需要打开特定的REMAP. 这里可能会花费你很多时间去排查. 在STM32F0/F3/F4上就没这么麻烦了.
 
-- STM32F0/F3支持TX/RX管脚交换, 只需要根据情况加上或者去掉```USARTx->CR2 |= USART_CR2_SWAP;```这一行前面的注释即可. F1/F4如果弄错TX/RX只能重新做板了.  
+- STM32F0/F3支持TX/RX管脚交换, 只需要根据情况加上或者去掉```USARTx->CR2 |= USART_CR2_SWAP;```这一行前面的注释即可. F1/F4如果弄错TX/RX, 要么费点劲飞线, 要么就得重新做板了.  
 
 ## 致谢
 
