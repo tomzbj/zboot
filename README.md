@@ -79,7 +79,7 @@ APP_BASE的值是前面提到过的0x08002000/0x08002800之类. __enable_irq()�
 
 1. 可以在app的Makefile里增加一条目标iap, 这样更新程序时只要执行make iap即可, 省太多事了.
 
-```python
+```makefile
 PYTHON := "py.exe"
 IAP := $(PYTHON) iap.py
 ...
