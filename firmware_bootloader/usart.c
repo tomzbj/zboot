@@ -7,33 +7,7 @@
 
 #define MAX_LEN 640
 
-#if defined (GD32F350)  || defined (GD32F130_150) || defined (GD32F330)
 #define USARTx USART1
-
-#elif defined (STM32F303xC)
-#define USARTx USART3
-
-#elif defined (STM32F072)
-#define USARTx USART1
-
-#elif defined (STM32F030) || defined (STM32F042)
-#define USARTx USART1
-
-#elif defined (STM32F10X_HD)
-
-#if defined (STM32F10X_USART1_FORK)
-#define USARTx USART1
-#else
-#define USARTx USART3
-#endif	/* STM32F10X_USART1_FORK */
-
-#elif defined (STM32F401xx)
-#define USARTx USART2
-
-#elif defined (STM32F401xx)
-#define USARTx USART2
-
-#endif
 
 static struct {
     unsigned char msg[MAX_LEN];
@@ -89,7 +63,7 @@ void USART_Config(void) {
     GPIOA->PUPDR |= (GPIO_PuPd_NOPULL << (9 * 2)) | (GPIO_PuPd_NOPULL << (10 * 2));
     GPIOA->AFR[1] = 0x00000110UL;// PA9 & 10 -> GPIO_AF_1
 
-#elif defined (STM32F10X_HD)
+#elif defined (STM32F10X_HD) || defined (STM32F10X_MD_VL)
 
 
 #if defined (STM32F10X_USART1_FORK)
@@ -103,15 +77,14 @@ void USART_Config(void) {
     GPIOA->CRH |= ((GPIO_Mode_AF_PP & 0xf) | GPIO_Speed_50MHz)  << ((9-8) *4); /* PA9-> AFPP */
     GPIOA->CRH |= (GPIO_Mode_IPU&0xf) << ((10-8) *4); /* PA10-> Input pull up */
 #else
-    /* USE pb10, pb11, usart3 */
-    RCC->APB1ENR |= RCC_APB1Periph_USART3;
-    RCC->APB2ENR |= RCC_APB2Periph_GPIOB;
-//    RCC->APB2ENR |= RCC_APB2Periph_AFIO;
+    RCC->APB2ENR |= RCC_APB2Periph_USART1;
+    RCC->APB2ENR |= RCC_APB2Periph_GPIOA;
+    RCC->APB2ENR |= RCC_APB2Periph_AFIO;
 
-    GPIOB->CRH &= ~(0xf << ((10-8)*4));
-    GPIOB->CRH &= ~(0xf << ((11-8)*4));
-    GPIOB->CRH |= (((GPIO_Mode_AF_PP&0xf) | GPIO_Speed_50MHz) << ((10-8) *4));
-    GPIOB->CRH |= (((GPIO_Mode_IPU&0xf)) << ((11-8) *4));
+    GPIOA->CRH &= ~(0xf << ((9-8)*4));
+    GPIOA->CRH &= ~(0xf << ((10-8)*4));
+    GPIOA->CRH |= (((GPIO_Mode_AF_PP&0xf) | GPIO_Speed_50MHz) << ((9-8) *4));
+    GPIOA->CRH |= (((GPIO_Mode_IPU&0xf)) << ((10-8) *4));
 #endif	/* STM32F10X_USART1_FORK */
 #endif	/* STM32F10X_HD */
     USARTx->CR1 &= ~USART_CR1_UE; // stop
@@ -126,7 +99,7 @@ void USART_Config(void) {
 #endif
 #endif  /* STM32F10X_USART1_FORK */
 
-#if !defined (STM32F10X_HD) && !defined (STM32F401xx)
+#if !defined (STM32F10X_HD) && !defined (STM32F401xx) && !defined (STM32F10X_MD_VL)
 //    USARTx->CR2 |= USART_CR2_SWAP;	// comment or uncomment this line if needed
 #endif
     USARTx->CR1 |= USART_CR1_UE;
@@ -148,7 +121,7 @@ void USART_Poll(void) {
             g.msg[g.size] = USART_RDATA(USARTx);
 #elif defined(STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F042)
             g.msg[g.size] = USARTx->RDR;
-#elif defined(STM32F10X_HD) || defined (STM32F401xx)
+#elif defined(STM32F10X_HD) || defined (STM32F401xx) || defined (STM32F10X_MD_VL)
             g.msg[g.size] = USARTx->DR;
 #endif
 
@@ -170,7 +143,7 @@ void USART_Poll(void) {
             g.nocomm = 0;
         }
         g.size = 0;
-#if defined(STM32F10X_HD)
+#if defined(STM32F10X_HD) || defined (STM32F10X_MD_VL)
         volatile unsigned long tmp = tmp;
         tmp = USARTx->SR;
         tmp = USARTx->DR;
@@ -179,7 +152,7 @@ void USART_Poll(void) {
 #endif
     }
     if (usart_flag_get1(USARTx, USART_FLAG_ORE)) {
-#if defined(STM32F10X_HD)
+#if defined(STM32F10X_HD) || defined (STM32F10X_MD_VL)
         volatile unsigned long tmp = tmp;
         tmp = USARTx->SR;
         tmp = USARTx->DR;
@@ -188,7 +161,7 @@ void USART_Poll(void) {
 #endif
     }
     if (usart_flag_get1(USARTx, USART_FLAG_FE)) {
-#if defined(STM32F10X_HD)
+#if defined(STM32F10X_HD) || defined (STM32F10X_MD_VL)
         volatile unsigned long tmp = tmp;
         tmp = USARTx->SR;
         tmp = USARTx->DR;
@@ -209,7 +182,7 @@ void uputc(unsigned char c) {
     USART_TDATA (USARTx) = (USART_TDATA_TDATA & c);
 #elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F042)
     USARTx->TDR = c;
-#elif defined (STM32F10X_HD) || defined (STM32F401xx)
+#elif defined (STM32F10X_HD) || defined (STM32F401xx) || defined (STM32F10X_MD_VL)
     USARTx->DR = c;
 #endif
     ( {  while(RESET == usart_flag_get1(USARTx, USART_FLAG_TC));});

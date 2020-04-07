@@ -12,11 +12,13 @@ echo 6. STM32F401RC
 echo 7. GD32F350CB 
 echo 8. GD32F130F8
 echo 9. GD32F330F4 
+echo A. STM32F100C8 
 echo Q. Exit
 echo Please enter:
-choice /c:123456789Q
+choice /c:123456789AQ
 
-if errorlevel 10 goto :end
+if errorlevel 11 goto :end
+if errorlevel 10 make.exe -Bsj -f "_makefiles\Makefile.stm32f10x_md_vl"
 if errorlevel 9 make.exe -Bsj -f "_makefiles\Makefile.gd32f330"
 if errorlevel 8 make.exe -Bsj -f "_makefiles\Makefile.gd32f130_150"
 if errorlevel 7 make.exe -Bsj -f "_makefiles\Makefile.gd32f350"

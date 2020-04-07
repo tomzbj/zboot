@@ -24,7 +24,7 @@ void SystemInit(void) {
     RCU_ADDINT = 0x00000000U;
 #endif
     RCU_INT = 0x00000000U;
-#elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F10X_HD)|| defined (STM32F401xx) || defined (STM32F042)
+#elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F10X_HD)|| defined (STM32F401xx) || defined (STM32F042) || defined (STM32F10X_MD_VL)
     RCC_DeInit();
 //    FLASH_PrefetchBufferCmd(ENABLE);
 #if defined (STM32F401xx)
@@ -37,7 +37,7 @@ void SystemInit(void) {
 
 #if defined (GD32F350) || defined (GD32F130_150)
     SCB->VTOR = NVIC_VECTTAB_FLASH;
-#elif defined (STM32F303xC) | defined (STM32F10X_HD) | defined (STM32F401xx)
+#elif defined (STM32F303xC) | defined (STM32F10X_HD) | defined (STM32F401xx) || defined (STM32F10X_MD_VL)
     SCB->VTOR = NVIC_VectTab_FLASH;     // invalid on cortex-m0
 #endif
 
@@ -81,7 +81,7 @@ int main(void) {
 	FLASH_EEPROM_Config(inf->eeprom_base, FLASH_PAGE_SIZE);
 #endif
 
-#if defined (GD32F350) || defined (STM32F303xC) || defined (STM32F10X_HD) || defined (GD32F130_150)
+#if defined (GD32F350) || defined (STM32F303xC) || defined (STM32F10X_HD) || defined (GD32F130_150) || defined (STM32F10X_MD_VL)
     *(unsigned long*)0xe000ed24 = 0x00070000; // enable usage fault
 #endif
 	while (1) {
@@ -100,7 +100,7 @@ void SysTick_Handler(void) {
 }
 
 void BusFault_Handler(void) {
-#if defined (GD32F350) || defined (STM32F303xC) || defined (STM32F10X_HD) || defined (GD32F130_150)
+#if defined (GD32F350) || defined (STM32F303xC) || defined (STM32F10X_HD) || defined (GD32F130_150) || defined (STM32F10X_MD_VL)
     if(SCB->CFSR & 0x0200) {
         xprintf("Read error @ %08lx\n", (unsigned long)(SCB->BFAR));
     }
