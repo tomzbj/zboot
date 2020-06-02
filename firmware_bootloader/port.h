@@ -6,7 +6,7 @@
 #define FLASH_PAGE_SIZE 1024
 #elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F10X_HD)
 #define FLASH_PAGE_SIZE 2048
-#elif defined (STM32F401xx)
+#elif defined (STM32F401xx) || defined (STM32F40_41xxx)
 #define FLASH_PAGE_SIZE 16384
 #endif
 
@@ -21,7 +21,7 @@
 #include "stm32f0xx.h" 
 #elif defined (STM32F10X_HD) || defined (STM32F10X_MD_VL)
 #include "stm32f10x.h" 
-#elif defined (STM32F401xx)
+#elif defined (STM32F401xx) || defined (STM32F40_41xxx)
 #include "stm32f4xx.h"
 #endif
 
@@ -48,14 +48,14 @@
 #define usart_flag_get1(usartx, flag) (usartx->ISR & flag)
 #define usart_flag_clear1(usartx, flag) do{usartx->ICR = flag;} while(0)
 
-#elif defined (STM32F10X_HD) || defined (STM32F401xx) || defined (STM32F10X_MD_VL)
+#elif defined (STM32F10X_HD) || defined (STM32F401xx) || defined (STM32F10X_MD_VL) || defined (STM32F40_41xxx)
 #define usart_flag_get1(usartx, flag) (usartx->SR & flag)
 #define usart_flag_clear1(usartx, flag) do{usartx->SR = ~flag;} while(0) 
 
 #endif
 
-// flash_erasepage for stm32f401xx
-#if defined (STM32F401xx)
+// flash_erasepage for stm32f4
+#if defined (STM32F401xx) || defined (STM32F40_41xxx)
 void FLASH_ErasePage(unsigned long addr);
 #endif
 

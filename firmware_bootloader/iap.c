@@ -53,7 +53,7 @@ void IAP_Config(void)
 #elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F042)
 #define REG_DENSITY     *(unsigned short*)0x1ffff7cc
     g.flash_size = REG_DENSITY;
-#elif defined (STM32F401xx)
+#elif defined (STM32F401xx) || defined (STM32F40_41xxx)
 #define REG_DENSITY     *(unsigned short*)0x1fff7a22
     g.flash_size = REG_DENSITY;
 #endif
@@ -111,7 +111,7 @@ void IAP_EraseApp(void)
     size = g.max_app_size;
 
     FLASH_Unlock();
-#if defined (STM32F401xx)
+#if defined (STM32F401xx) || defined (STM32F40_41xxx)
     FLASH_ClearFlag(FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
 #else
     FLASH_ClearFlag(FLASH_FLAG_PGERR);
@@ -171,7 +171,7 @@ void IAP_Parse(const unsigned char* msg, int msg_size)
             else {
                 content = &msg[8];
                 FLASH_Unlock();
-#if defined (STM32F401xx)
+#if defined (STM32F401xx) || defined (STM32F40_41xxx)
                 FLASH_ClearFlag(FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
 #else
                 FLASH_ClearFlag(FLASH_FLAG_PGERR);

@@ -1,6 +1,6 @@
 #include "zboot_misc.h"
 
-#if defined (STM32F401xx)
+#if defined (STM32F401xx) || defined (STM32F40_41xxx)
 
 void FLASH_ErasePage(unsigned long addr)
 {
