@@ -52,7 +52,7 @@ void USART_Config(void) {
     GPIO_PinAFConfig(GPIOA, GPIO_PinSource9, GPIO_AF_USART1);
     GPIO_PinAFConfig(GPIOA, GPIO_PinSource10, GPIO_AF_USART1);
 
-#elif defined (STM32F072) || defined (STM32F042) || defined (STM32F030)
+#elif defined (STM32F072) || defined (STM32F042) || defined (STM32F030) || defined (STM32F051)
     RCC->APB2ENR |= RCC_APB2Periph_USART1;
     RCC->AHBENR |= RCC_AHBPeriph_GPIOA;
 
@@ -61,7 +61,7 @@ void USART_Config(void) {
 //    GPIOA->MODER |= (GPIO_Mode_OUT << (9 * 2)) | (GPIO_Mode_OUT << (10 * 2));
     GPIOA->MODER |= (GPIO_Mode_AF << (9 * 2)) | (GPIO_Mode_AF << (10 * 2));
     GPIOA->PUPDR |= (GPIO_PuPd_NOPULL << (9 * 2)) | (GPIO_PuPd_NOPULL << (10 * 2));
-    GPIOA->AFR[1] = 0x00000110UL;// PA9 & 10 -> GPIO_AF_0
+    GPIOA->AFR[1] = 0x00000110UL;// PA9 & 10 -> GPIO_AF_1
 
 #elif defined (STM32F10X_HD) || defined (STM32F10X_MD_VL)
 
@@ -119,7 +119,7 @@ void USART_Poll(void) {
         if (g.size < MAX_LEN) {
 #if defined(GD32F350) || defined (GD32F130_150) || defined (GD32F330)
             g.msg[g.size] = USART_RDATA(USARTx);
-#elif defined(STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F042)
+#elif defined(STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F042) || defined (STM32F051)
             g.msg[g.size] = USARTx->RDR;
 #elif defined(STM32F10X_HD) || defined (STM32F401xx) || defined (STM32F10X_MD_VL) || defined (STM32F40_41xxx)
             g.msg[g.size] = USARTx->DR;
@@ -180,7 +180,7 @@ void uputc(unsigned char c) {
     ( {  while(RESET == usart_flag_get1(USARTx, USART_FLAG_TXE));});
 #if defined (GD32F350) || defined (GD32F130_150) || defined (GD32F330)
     USART_TDATA (USARTx) = (USART_TDATA_TDATA & c);
-#elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F042)
+#elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F042) || defined (STM32F051)
     USARTx->TDR = c;
 #elif defined (STM32F10X_HD) || defined (STM32F401xx) || defined (STM32F10X_MD_VL) || defined (STM32F40_41xxx)
     USARTx->DR = c;
