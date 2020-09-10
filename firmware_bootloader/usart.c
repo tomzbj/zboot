@@ -7,7 +7,33 @@
 
 #define MAX_LEN 1280
 
-#define USARTx USART1
+#if (_USE_USART1)
+    #define USARTx USART1
+#elif (_USE_USART2)
+    #define USARTx USART2
+#elif (_USE_USART3)
+    #define USARTx USART3
+#elif (_USE_USART4)
+    #define USARTx USART4
+#elif (_USE_UART4)
+    #define USARTx UART4
+#elif (_USE_UART5)
+    #define USARTx UART5
+#else
+    #error _USE_USARTx/UARTx not defined.
+#endif
+
+#if (_USE_GPIOA)
+    #define GPIOx GPIOA
+#elif (_USE_GPIOB) 
+    #define GPIOx GPIOB
+#elif (_USE_GPIOC) 
+    #define GPIOx GPIOC
+#elif (_USE_GPIOD) 
+    #define GPIOx GPIOD
+#else
+    #error _USE_GPIOx not defined.
+#endif
 
 static struct {
     unsigned char msg[MAX_LEN];
@@ -15,99 +41,134 @@ static struct {
     int nocomm;
 } g;
 
+static inline void RCC_GPIO_Config(void) {
+    // enables usart/uart clock
+#if defined (STM32F303xC) || defined (STM32F401xx) || defined (STM32F40_41xxx) || defined (STM32F072) || defined (STM32F042) || defined (STM32F030) || defined (STM32F051) || defined (STM32F070xB)
+    #if (_USE_USART1)
+    RCC->APB2ENR |= RCC_APB2Periph_USART1;
+    #elif (_USE_USART2)
+    RCC->APB1ENR |= RCC_APB1Periph_USART2;
+    #elif (_USE_USART3)
+    RCC->APB1ENR |= RCC_APB1Periph_USART3;
+    #elif (_USE_USART4)
+    RCC->APB1ENR |= RCC_APB1Periph_USART4;
+    #elif (_USE_UART4)
+    RCC->APB1ENR |= RCC_APB1Periph_UART4;
+    #elif (_USE_UART5)
+    RCC->APB1ENR |= RCC_APB1Periph_UART5;
+    #else
+        #error "_USE_USARTx/UARTx not defined."
+    #endif
+#endif
+
+    // enables gpio clock,  f0 & f3, gpio on ahb
+#if defined (STM32F303xC) || defined (STM32F072) || defined (STM32F042) || defined (STM32F030) || defined (STM32F051) || defined (STM32F070xB)
+    #if (_USE_GPIOA)
+    RCC->AHBENR |= RCC_AHBPeriph_GPIOA;
+    #elif (_USE_GPIOB)
+    RCC->AHBENR |= RCC_AHBPeriph_GPIOB;
+    #elif (_USE_GPIOC)
+    RCC->AHBENR |= RCC_AHBPeriph_GPIOC;
+    #elif (_USE_GPIOD)
+    RCC->AHBENR |= RCC_AHBPeriph_GPIOD;
+    #else
+        #error "_USE_GPIOx not defined."
+    #endif
+
+    // f4, gpio on ahb1
+#elif defined (STM32F401xx) || defined (STM32F40_41xxx)
+    #if (_USE_GPIOA)
+    RCC->AHB1ENR |= RCC_AHB1Periph_GPIOA;
+    #elif (_USE_GPIOB)
+    RCC->AHB1ENR |= RCC_AHB1Periph_GPIOB;
+    #elif (_USE_GPIOC)
+    RCC->AHB1ENR |= RCC_AHB1Periph_GPIOC;
+    #elif (_USE_GPIOD)
+    RCC->AHB1ENR |= RCC_AHB1Periph_GPIOD;
+    #else
+        #error "_USE_GPIOx not defined."    
+    #endif
+
+    // f1, gpio on apb2
+#elif defined (STM32F10X_HD) || defined (STM32F10X_MD_VL)
+    #if (_USE_GPIOA)
+    RCC->APB2ENR |= RCC_APB2Periph_GPIOA;
+    #elif (_USE_GPIOB)
+    RCC->APB2ENR |= RCC_APB2Periph_GPIOB;
+    #elif (_USE_GPIOC)
+    RCC->APB2ENR |= RCC_APB2Periph_GPIOC;
+    #elif (_USE_GPIOD)
+    RCC->APB2ENR |= RCC_APB2Periph_GPIOD;
+    #else
+        #error "_USE_GPIOx not defined."    
+    #endif
+    RCC->APB2ENR |= RCC_APB2Periph_AFIO;    // enable afio
+#endif
+
+// gpio config
+#if defined (STM32F303xC) || defined (STM32F072) || defined (STM32F042) || defined (STM32F030) || defined (STM32F051) || defined (STM32F070xB) || defined (STM32F401xx) || defined (STM32F40_41xxx)
+    GPIOx->OSPEEDR |= (GPIO_Speed_50MHz << (_USART_TXPIN * 2)) | (GPIO_Speed_50MHz << (_USART_RXPIN * 2));
+    GPIOx->OTYPER |= (GPIO_OType_PP << (_USART_TXPIN * 2)) | (GPIO_OType_PP << (_USART_RXPIN * 2));
+    GPIOx->MODER |= (GPIO_Mode_AF << (_USART_TXPIN * 2)) | (GPIO_Mode_AF << (_USART_RXPIN * 2));
+    GPIOx->PUPDR |= (GPIO_PuPd_NOPULL << (_USART_TXPIN * 2)) | (GPIO_PuPd_NOPULL << (_USART_RXPIN * 2));
+
+    GPIO_PinAFConfig(GPIOx, _USART_TXPIN, _GPIO_AF_TXPIN);  // check the table "alternate function" in datasheets
+    GPIO_PinAFConfig(GPIOx, _USART_RXPIN, _GPIO_AF_RXPIN);
+#elif defined (STM32F10X_HD) || defined (STM32F10X_MD_VL)
+    // there may be some additional pin map configurations here!!!
+    #if (_USART_TXPIN / 8)  // TXPIN, 8-15
+    GPIOx->CRH &= ~(0xf << ((_USART_TXPIN - 8) * 4));
+    GPIOx->CRH |= (((GPIO_Mode_AF_PP & 0xf) | GPIO_Speed_50MHz) << ((_USART_TXPIN - 8) * 4));
+    #else   // 0-7
+    GPIOx->CRL &= ~(0xf << ((_USART_TXPIN) * 4));
+    GPIOx->CRL |= (((GPIO_Mode_AF_PP & 0xf) | GPIO_Speed_50MHz) << ((_USART_TXPIN) * 4));
+    #endif
+
+    #if (_USART_RXPIN / 8)  // RXPIN, 8-15
+    GPIOx->CRH &= ~(0xf << ((_USART_RXPIN - 8) * 4));
+    GPIOx->CRH |= (((GPIO_Mode_IPU & 0xf)) << ((_USART_RXPIN - 8) * 4));
+    #else
+    GPIOx->CRL &= ~(0xf << ((_USART_RXPIN) * 4));
+    GPIOx->CRL |= (((GPIO_Mode_IPU & 0xf)) << ((_USART) *4));
+    #endif
+#endif	/* STM32F10X_HD */
+}
+
 void USART_Config(void) {
 #if defined (GD32F350) || defined (GD32F130_150) || defined (GD32F330)
     RCU_REG_VAL(RCU_USART1) |= BIT(RCU_BIT_POS(RCU_USART1));
     RCU_REG_VAL(RCU_GPIOA) |= BIT(RCU_BIT_POS(RCU_GPIOA));
-    gpio_af_set(GPIOA, GPIO_AF_1, GPIO_PIN_2 | GPIO_PIN_3);
-    gpio_mode_set(GPIOA, GPIO_MODE_AF, GPIO_PUPD_PULLUP, GPIO_PIN_2 | GPIO_PIN_3);
-    gpio_output_options_set(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_10MHZ, GPIO_PIN_2);
+    gpio_af_set(GPIOx, GPIO_AF_1, GPIO_PIN_2 | GPIO_PIN_3);
+    gpio_mode_set(GPIOx, GPIO_MODE_AF, GPIO_PUPD_PULLUP, GPIO_PIN_2 | GPIO_PIN_3);
+    gpio_output_options_set(GPIOx, GPIO_OTYPE_PP, GPIO_OSPEED_10MHZ, GPIO_PIN_2);
     usart_deinit(USARTx); /* USART configure */
     USART_CTL0 (USARTx) = 0x0000000c;
     USART_CTL1 (USARTx) = 0x00000000;
     USART_BAUD (USARTx) = 0x00000010;
     USART_CTL0(USARTx) |= USART_CTL0_UEN; //usart_enable(USARTx);
 #else
+    RCC_GPIO_Config();
 
-#if defined (STM32F303xC)
-    RCC->APB2ENR |= RCC_APB2Periph_USART1;
-    RCC->AHBENR |= RCC_AHBPeriph_GPIOA;
-
-    GPIOA->OSPEEDR |= (GPIO_Speed_50MHz << (9 * 2)) | (GPIO_Speed_50MHz << (10 * 2));
-    GPIOA->OTYPER |= (GPIO_OType_PP << (9 * 2)) | (GPIO_OType_PP << (10 * 2));
-    GPIOA->MODER |= (GPIO_Mode_AF << (9 * 2)) | (GPIO_Mode_AF << (10 * 2));
-    GPIOA->PUPDR |= (GPIO_PuPd_NOPULL << (9 * 2)) | (GPIO_PuPd_NOPULL << (10 * 2));
-    GPIO_PinAFConfig(GPIOA, GPIO_PinSource9, GPIO_AF_7);
-    GPIO_PinAFConfig(GPIOA, GPIO_PinSource10, GPIO_AF_7);
-
-//#elif 1
-#elif defined (STM32F401xx) || defined (STM32F40_41xxx)
-    RCC->APB2ENR |= RCC_APB2Periph_USART1;
-    RCC->AHB1ENR |= RCC_AHB1Periph_GPIOA;
-
-    GPIOA->OSPEEDR |= (GPIO_Speed_100MHz << (9 * 2)) | (GPIO_Speed_100MHz << (10 * 2));
-    GPIOA->OTYPER |= (GPIO_OType_PP << (9 )) | (GPIO_OType_PP << (10));
-    GPIOA->MODER |= (GPIO_Mode_AF << (9 * 2)) | (GPIO_Mode_AF << (10 * 2));
-    GPIOA->PUPDR |= (GPIO_PuPd_NOPULL << (9 * 2)) | (GPIO_PuPd_NOPULL << (10 * 2));
-    GPIO_PinAFConfig(GPIOA, GPIO_PinSource9, GPIO_AF_USART1);
-    GPIO_PinAFConfig(GPIOA, GPIO_PinSource10, GPIO_AF_USART1);
-
-#elif defined (STM32F072) || defined (STM32F042) || defined (STM32F030) || defined (STM32F051) || defined (STM32F070xB)
-    RCC->APB2ENR |= RCC_APB2Periph_USART1;
-    RCC->AHBENR |= RCC_AHBPeriph_GPIOA;
-
-    GPIOA->OSPEEDR |= (GPIO_Speed_50MHz << (9 * 2)) | (GPIO_Speed_50MHz << (10 * 2));
-    GPIOA->OTYPER |= (GPIO_OType_PP << (9 * 2)) | (GPIO_OType_PP << (10 * 2));
-//    GPIOA->MODER |= (GPIO_Mode_OUT << (9 * 2)) | (GPIO_Mode_OUT << (10 * 2));
-    GPIOA->MODER |= (GPIO_Mode_AF << (9 * 2)) | (GPIO_Mode_AF << (10 * 2));
-    GPIOA->PUPDR |= (GPIO_PuPd_NOPULL << (9 * 2)) | (GPIO_PuPd_NOPULL << (10 * 2));
-    GPIOA->AFR[1] = 0x00000110UL;// PA9 & 10 -> GPIO_AF_1
-
-#elif defined (STM32F10X_HD) || defined (STM32F10X_MD_VL)
-
-
-#if defined (STM32F10X_USART1_FORK)
-    /* USE pa9, pa10, usart1 */
-    RCC->APB2ENR |= RCC_APB2Periph_USART1;
-    RCC->APB2ENR |= RCC_APB2Periph_GPIOA;
-    //RCC->APB2ENR |= RCC_APB2Periph_AFIO;
-    
-    GPIOA->CRH &= ~(0xf << ((9-8)*4));
-    GPIOA->CRH &= ~(0xf << ((10-8)*4));
-    GPIOA->CRH |= ((GPIO_Mode_AF_PP & 0xf) | GPIO_Speed_50MHz)  << ((9-8) *4); /* PA9-> AFPP */
-    GPIOA->CRH |= (GPIO_Mode_IPU&0xf) << ((10-8) *4); /* PA10-> Input pull up */
-#else
-    RCC->APB2ENR |= RCC_APB2Periph_USART1;
-    RCC->APB2ENR |= RCC_APB2Periph_GPIOA;
-    RCC->APB2ENR |= RCC_APB2Periph_AFIO;
-
-    GPIOA->CRH &= ~(0xf << ((9-8)*4));
-    GPIOA->CRH &= ~(0xf << ((10-8)*4));
-    GPIOA->CRH |= (((GPIO_Mode_AF_PP&0xf) | GPIO_Speed_50MHz) << ((9-8) *4));
-    GPIOA->CRH |= (((GPIO_Mode_IPU&0xf)) << ((10-8) *4));
-#endif	/* STM32F10X_USART1_FORK */
-#endif	/* STM32F10X_HD */
     USARTx->CR1 &= ~USART_CR1_UE; // stop
     USARTx->CR1 |= (USART_Mode_Tx | USART_Mode_Rx);
-#if defined (STM32F10X_USART1_FORK)
-    USARTx->BRR = 69;	// 8M / 115200 = 69.4
-#else
+
 #if !defined (STM32F401xx) && !defined(STM32F40_41xxx)
     USARTx->BRR = 16; // 8M / 16 = 500k
 #else
-    USARTx->BRR = 32; // 16M / 500k = 32
+    USARTx->BRR = 32; // 16M / 32 = 500k
 #endif
-#endif  /* STM32F10X_USART1_FORK */
 
 #if !defined (STM32F10X_HD) && !defined (STM32F401xx) && !defined (STM32F10X_MD_VL) && !defined (STM32F40_41xxx)
-//    USARTx->CR2 |= USART_CR2_SWAP;	// comment or uncomment this line if needed
+    #if (_USART_PIN_SWAP)
+    USARTx->CR2 |= USART_CR2_SWAP;
+    #endif
 #endif
     USARTx->CR1 |= USART_CR1_UE;
 
 #endif	/* GD32F350 */
     g.nocomm = 1;
     xdev_out(uputc);
-//    while(1) { xprintf("Hello, world.\n"); ( {  for(volatile int i = 0; i < 100000UL; i++);}); }	// for debug
+    //    while(1) { xprintf("Hello, world.\n"); ( {  for(volatile int i = 0; i < 100000UL; i++);}); }	// for debug
 }
 
 int USART_NoComm(void) {
@@ -124,7 +185,6 @@ void USART_Poll(void) {
 #elif defined(STM32F10X_HD) || defined (STM32F401xx) || defined (STM32F10X_MD_VL) || defined (STM32F40_41xxx)
             g.msg[g.size] = USARTx->DR;
 #endif
-
             g.size++;
         }
         usart_flag_clear1(USARTx, USART_FLAG_RXNE);
