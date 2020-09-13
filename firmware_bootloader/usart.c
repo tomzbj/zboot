@@ -110,10 +110,24 @@ static inline void RCC_GPIO_Config(void) {
     GPIOx->OSPEEDR |= (GPIO_Speed_50MHz << (_USART_TXPIN * 2)) | (GPIO_Speed_50MHz << (_USART_RXPIN * 2));
     GPIOx->OTYPER |= (GPIO_OType_PP << (_USART_TXPIN * 2)) | (GPIO_OType_PP << (_USART_RXPIN * 2));
     GPIOx->MODER |= (GPIO_Mode_AF << (_USART_TXPIN * 2)) | (GPIO_Mode_AF << (_USART_RXPIN * 2));
+//    GPIOx->MODER |= (GPIO_Mode_OUT << (_USART_TXPIN * 2)) | (GPIO_Mode_OUT << (_USART_RXPIN * 2));
     GPIOx->PUPDR |= (GPIO_PuPd_NOPULL << (_USART_TXPIN * 2)) | (GPIO_PuPd_NOPULL << (_USART_RXPIN * 2));
+//    while(1) { GPIOx->ODR ^= _USART_TXPIN; }  // debug
 
-    GPIO_PinAFConfig(GPIOx, _USART_TXPIN, _GPIO_AF_TXPIN);  // check the table "alternate function" in datasheets
-    GPIO_PinAFConfig(GPIOx, _USART_RXPIN, _GPIO_AF_RXPIN);
+    #if (_USART_TXPIN / 8)  // RXPIN, 8-15
+    GPIOA->AFR[1] &= ~(0xf << ((_USART_TXPIN - 8) * 4));
+    GPIOA->AFR[1] |= (_GPIO_AF_TXPIN << ((_USART_TXPIN - 8) * 4));
+    #else
+    GPIOA->AFR[0] &= ~(0xf << ((_USART_TXPIN) * 4));
+    GPIOA->AFR[0] |= (_GPIO_AF_TXPIN << ((_USART_TXPIN) * 4));
+    #endif
+    #if (_USART_RXPIN / 8)  // RXPIN, 8-15
+    GPIOA->AFR[1] &= ~(0xf << ((_USART_RXPIN - 8) * 4));
+    GPIOA->AFR[1] |= (_GPIO_AF_RXPIN << ((_USART_RXPIN - 8) * 4));
+    #else
+    GPIOA->AFR[0] &= ~(0xf << ((_USART_RXPIN) * 4));
+    GPIOA->AFR[0] |= (_GPIO_AF_RXPIN << ((_USART_RXPIN) * 4));
+    #endif
 #elif defined (STM32F10X_HD) || defined (STM32F10X_MD_VL)
     // there may be some additional pin map configurations here!!!
     #if (_USART_TXPIN / 8)  // TXPIN, 8-15
@@ -129,7 +143,7 @@ static inline void RCC_GPIO_Config(void) {
     GPIOx->CRH |= (((GPIO_Mode_IPU & 0xf)) << ((_USART_RXPIN - 8) * 4));
     #else
     GPIOx->CRL &= ~(0xf << ((_USART_RXPIN) * 4));
-    GPIOx->CRL |= (((GPIO_Mode_IPU & 0xf)) << ((_USART) *4));
+    GPIOx->CRL |= (((GPIO_Mode_IPU & 0xf)) << ((_USART_TXPIN) *4));
     #endif
 #endif	/* STM32F10X_HD */
 }
@@ -168,7 +182,7 @@ void USART_Config(void) {
 #endif	/* GD32F350 */
     g.nocomm = 1;
     xdev_out(uputc);
-    //    while(1) { xprintf("Hello, world.\n"); ( {  for(volatile int i = 0; i < 100000UL; i++);}); }	// for debug
+// while(1) { xprintf("Hello, world.\n"); ( {  for(volatile int i = 0; i < 100000UL; i++);}); }	// for debug
 }
 
 int USART_NoComm(void) {
