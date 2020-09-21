@@ -43,7 +43,7 @@ static struct {
 
 static inline void RCC_GPIO_Config(void) {
     // enables usart/uart clock
-#if defined (STM32F303xC) || defined (STM32F401xx) || defined (STM32F40_41xxx) || defined (STM32F072) || defined (STM32F042) || defined (STM32F030) || defined (STM32F051) || defined (STM32F070xB)
+#if defined (STM32F303xC) || defined (STM32F401xx) || defined (STM32F40_41xxx) || defined (STM32F072) || defined (STM32F042) || defined (STM32F030) || defined (STM32F051) || defined (STM32F070xB) || defined (STM32F10X_MD_VL) || defined (STM32F10X_HD)
     #if (_USE_USART1)
     RCC->APB2ENR |= RCC_APB2Periph_USART1;
     #elif (_USE_USART2)
@@ -140,10 +140,10 @@ static inline void RCC_GPIO_Config(void) {
 
     #if (_USART_RXPIN / 8)  // RXPIN, 8-15
     GPIOx->CRH &= ~(0xf << ((_USART_RXPIN - 8) * 4));
-    GPIOx->CRH |= (((GPIO_Mode_IPU & 0xf)) << ((_USART_RXPIN - 8) * 4));
+    GPIOx->CRH |= ((GPIO_Mode_IPU & 0xf) << ((_USART_RXPIN - 8) * 4));
     #else
     GPIOx->CRL &= ~(0xf << ((_USART_RXPIN) * 4));
-    GPIOx->CRL |= (((GPIO_Mode_IPU & 0xf)) << ((_USART_TXPIN) *4));
+    GPIOx->CRL |= ((GPIO_Mode_IPU & 0xf) << ((_USART_RXPIN) *4));
     #endif
 #endif	/* STM32F10X_HD */
 }
