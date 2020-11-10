@@ -115,18 +115,18 @@ static inline void RCC_GPIO_Config(void) {
 //    while(1) { GPIOx->ODR ^= _USART_TXPIN; }  // debug
 
     #if (_USART_TXPIN / 8)  // RXPIN, 8-15
-    GPIOA->AFR[1] &= ~(0xf << ((_USART_TXPIN - 8) * 4));
-    GPIOA->AFR[1] |= (_GPIO_AF_TXPIN << ((_USART_TXPIN - 8) * 4));
+    GPIOx->AFR[1] &= ~(0xf << ((_USART_TXPIN - 8) * 4));
+    GPIOx->AFR[1] |= (_GPIO_AF_TXPIN << ((_USART_TXPIN - 8) * 4));
     #else
-    GPIOA->AFR[0] &= ~(0xf << ((_USART_TXPIN) * 4));
-    GPIOA->AFR[0] |= (_GPIO_AF_TXPIN << ((_USART_TXPIN) * 4));
+    GPIOx->AFR[0] &= ~(0xf << ((_USART_TXPIN) * 4));
+    GPIOx->AFR[0] |= (_GPIO_AF_TXPIN << ((_USART_TXPIN) * 4));
     #endif
     #if (_USART_RXPIN / 8)  // RXPIN, 8-15
-    GPIOA->AFR[1] &= ~(0xf << ((_USART_RXPIN - 8) * 4));
-    GPIOA->AFR[1] |= (_GPIO_AF_RXPIN << ((_USART_RXPIN - 8) * 4));
+    GPIOx->AFR[1] &= ~(0xf << ((_USART_RXPIN - 8) * 4));
+    GPIOx->AFR[1] |= (_GPIO_AF_RXPIN << ((_USART_RXPIN - 8) * 4));
     #else
-    GPIOA->AFR[0] &= ~(0xf << ((_USART_RXPIN) * 4));
-    GPIOA->AFR[0] |= (_GPIO_AF_RXPIN << ((_USART_RXPIN) * 4));
+    GPIOx->AFR[0] &= ~(0xf << ((_USART_RXPIN) * 4));
+    GPIOx->AFR[0] |= (_GPIO_AF_RXPIN << ((_USART_RXPIN) * 4));
     #endif
 #elif defined (STM32F10X_HD) || defined (STM32F10X_MD_VL)
     // there may be some additional pin map configurations here!!!

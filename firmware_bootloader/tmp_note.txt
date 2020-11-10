@@ -1,2 +1,4 @@
 f030 ok
 f103rc/re ok
+f303cc/rc ok
+f401rc ok
