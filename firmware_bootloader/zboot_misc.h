@@ -20,11 +20,11 @@
 #define _USE_GPIOC   0
 #define _USE_GPIOD   0
 
-#define _USART_TXPIN 2
-#define _USART_RXPIN 3
+#define _USART_TXPIN 9
+#define _USART_RXPIN 10
 
-#define _GPIO_AF_TXPIN GPIO_AF_1
-#define _GPIO_AF_RXPIN GPIO_AF_1
+#define _GPIO_AF_TXPIN GPIO_AF_7
+#define _GPIO_AF_RXPIN GPIO_AF_7
 
 #define _USART_PIN_SWAP 0   // NOT available on stm32 f1/f4!
 
