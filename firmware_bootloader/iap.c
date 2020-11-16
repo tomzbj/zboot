@@ -13,6 +13,7 @@ enum {
 typedef void (*func_app)(void);
 volatile func_app func;
 
+/*
 static void* memcpy_s(void* dest, const void* src, size_t size)
 {
     char *d = dest;
@@ -21,6 +22,7 @@ static void* memcpy_s(void* dest, const void* src, size_t size)
         *d++ = *s++;
     return dest;
 }
+*/
 
 const unsigned long polynormial = 0xedb88320;
 static unsigned long CRC32(unsigned long crc, unsigned char* msg, int size)
@@ -167,9 +169,9 @@ void IAP_Parse(const unsigned char* msg, int msg_size)
             uputc(0x00);
             break;
         case IAP_WRITE_FLASH:          // 写flash
-            memcpy_s(&size, &msg[2], sizeof(size));
+            memcpy(&size, &msg[2], sizeof(size));
             size &= 0xffff;          // 这里size只有16位!
-            memcpy_s(&pos, &msg[4], sizeof(pos));
+            memcpy(&pos, &msg[4], sizeof(pos));
             pos += g.app_base;
             if(pos < g.app_base || pos + size > g.app_base + g.max_app_size) {
                 uputc(0xff);          // 超过可用范围

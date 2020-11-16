@@ -3,7 +3,7 @@
 
 #include "port.h"
 
-#define _USE_EEPROM 0
+#define _USE_EEPROM 1
 #define _USE_CLI 1
 
 // choose one 
