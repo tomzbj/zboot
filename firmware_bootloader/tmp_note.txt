@@ -1,4 +1,5 @@
-f030 ok
+f030c8 ok
+f030f4 ok
 f103rc/re ok
 f303cc/rc ok
 f401rc ok
