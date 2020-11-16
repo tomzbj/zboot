@@ -207,7 +207,8 @@ void USART_Poll(void) {
         if(0) {
         }
 #if _USE_CLI
-        else if (strncasecmp((char*) g.msg, "##", 2) == 0) {
+//        else if (strncasecmp((char*) g.msg, "##", 2) == 0) {
+        else if(g.msg[0] == '#' && g.msg[1] == '#') {
             CLI_Parse(g.msg, g.size);
             g.nocomm = 0;
         }

@@ -69,8 +69,8 @@ static void Parse(char* const tokens[], int count)
             xprintf("%u Bytes\n", FLASH_EEPROM_GetSize());
         }
         else if(strcasecmp(tokens[1], "READ") == 0) {
-            unsigned short addr = strtol(tokens[2], NULL, 16);
-            unsigned short size = strtol(tokens[3], NULL, 10);
+            unsigned short addr = strtoul(tokens[2], NULL, 16);
+            unsigned short size = strtoul(tokens[3], NULL, 10);
             EEPROM_View(addr, size);
         }
         else if(strcasecmp(tokens[1], "READALL") == 0) {
@@ -81,8 +81,8 @@ static void Parse(char* const tokens[], int count)
             Done();
         }
         else if(strcasecmp(tokens[1], "WRITE") == 0) {
-            unsigned short addr = strtol(tokens[2], NULL, 16);
-            unsigned short data = strtol(tokens[3], NULL, 16);
+            unsigned short addr = strtoul(tokens[2], NULL, 16);
+            unsigned short data = strtoul(tokens[3], NULL, 16);
             if(addr % 2 != 0 || addr > FLASH_EEPROM_GetSize()) {
                 xprintf("Invalid addr!\n");
                 return;
@@ -146,8 +146,13 @@ void CLI_Parse(const char* msg, int size)
     char seps[] = "#? ,\r\n", string[MSG_LEN];
     int i, count = 0; //, len;
 
-    bzero(string, MSG_LEN);
-    strncpy(string, msg, size);
+    if(size >= MSG_LEN) return;
+
+    for(i = 0; i < size; i++)
+        string[i] = msg[i];
+    for(i = size; i < MSG_LEN; i++)
+        string[i] = 0;
+
     for(i = 0; i < size; i++) {
         if(isalpha((int)string[i]))
             string[i] = toupper((int)string[i]);
