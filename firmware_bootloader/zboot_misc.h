@@ -26,6 +26,9 @@
 #define _GPIO_AF_TXPIN GPIO_AF_1
 #define _GPIO_AF_RXPIN GPIO_AF_1
 
-#define _USART_PIN_SWAP 0   // NOT available on stm32 f1/f4!
+#define _USART_PIN_SWAP 1   // NOT available on stm32 f1/f4!
+
+#define _USE_PLL 1
+#define _BAUDRATE 1500000    // _USE_PLL must be 1 if BAUDRATE > 500000
 
 #endif

@@ -26,6 +26,22 @@ void SystemInit(void) {
     RCU_INT = 0x00000000U;
 #elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F10X_HD)|| defined (STM32F401xx) || defined (STM32F042) || defined (STM32F10X_MD_VL) || defined (STM32F051)
     RCC_DeInit();
+#if _USE_PLL
+    FLASH_SetLatency(FLASH_Latency_1);
+    RCC_HCLKConfig(RCC_SYSCLK_Div1);    // AHB CLK = SYSCLK
+#if defined (STM32F10X_HD) || defined (STM32F10X_MD_VL) || defined (STM32F303xC)
+    RCC_PCLK1Config(RCC_HCLK_Div1);    // APB1 CLK = SYSCLK
+    RCC_PCLK2Config(RCC_HCLK_Div1);    // APB1 CLK = SYSCLK
+    RCC_PLLConfig(RCC_PLLSource_HSI_Div2, RCC_PLLMul_6); // 4M * 6 = 24M, which is the highest freq could be supported by all stm32's.
+#else
+    RCC_PCLKConfig(RCC_HCLK_Div1);    // APB1 CLK = SYSCLK
+    RCC_PLLConfig(RCC_PLLSource_HSI, RCC_PLLMul_3); // 8M * 3 = 24M, which is the highest freq could be supported by all stm32's.
+#endif
+    RCC_PLLCmd(ENABLE);
+    while(RCC_GetFlagStatus(RCC_FLAG_PLLRDY) == RESET);
+    RCC_SYSCLKConfig(RCC_SYSCLKSource_PLLCLK);
+    while(RCC_GetSYSCLKSource() != 0x08);    
+#endif
 //    FLASH_PrefetchBufferCmd(ENABLE);
 #if defined (STM32F401xx)
     FLASH->ACR |= FLASH_ACR_PRFTEN;
@@ -43,36 +59,9 @@ void SystemInit(void) {
 
 }
 
-#if defined (STM32F10X_USART1_FORK)
-int GPIO_Config() {
-    RCC->APB2ENR |= RCC_APB2Periph_GPIOC;
-    GPIOC->CRL &= ~(0xf << (2*4));
-    GPIOC->CRL |= (0b0001 << (2*4)); /* output pp */
-    GPIOC->BSRR |= 2 << 16; /* set PC2 low to mute beep on board*/
-
-    RCC->APB2ENR |= RCC_APB2Periph_GPIOB;
-    GPIOB->CRH &= ~(0xf << (15-8)*4);
-    GPIOB->CRH |= (GPIO_Mode_IPU&0xf) << ((15-8)*4); /* PB15: input pull-up-down */
-    GPIOB->BSRR |= 1 << 15; /* set PB15 to pull up */
-}
-
-int Button_Pushed(void) {
-    return (GPIOB->IDR & (1<< 15)) ? 0: 1;
-}
-#else
-int Button_Pushed(void) {
-	return 0;
-} /* always False by default */
-#endif
-
 int main(void) {
 	SystemInit();
 	SysTick_Config(8000000UL); // delay 1s and then jump to app
-
-#if defined (STM32F10X_USART1_FORK)
-    /* add by Lv: init gpio for better jump control  */
-    GPIO_Config();
-#endif
 
 	IAP_Config();
 	USART_Config();
@@ -94,7 +83,7 @@ int main(void) {
 }
 
 void SysTick_Handler(void) {
-	if (IAP_IsAppValid() && USART_NoComm() && !Button_Pushed()) {
+	if (IAP_IsAppValid() && USART_NoComm()) {
 		flag_jump = 1;      // do not simply jump from here, use a flag instead
 	}
 }

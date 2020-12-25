@@ -5,7 +5,7 @@
 #include "cli.h"
 #include "xprintf.h"
 
-#define MAX_LEN 1280
+#define MAX_LEN 1152
 
 #if (_USE_USART1)
     #define USARTx USART1
@@ -59,6 +59,14 @@ static inline void RCC_GPIO_Config(void) {
     #else
         #error "_USE_USARTx/UARTx not defined."
     #endif
+#elif defined (GD32F350) || defined (GD32F130_150) || defined (GD32F330)
+    #if (_USE_USART1)
+    RCU_REG_VAL(RCU_USART1) |= BIT(RCU_BIT_POS(RCU_USART1));
+    #elif (_USE_USART2)
+    RCU_REG_VAL(RCU_USART2) |= BIT(RCU_BIT_POS(RCU_USART2));
+        #error "_USE_USARTx/UARTx not defined."
+    #endif
+
 #endif
 
     // enables gpio clock,  f0 & f3, gpio on ahb
@@ -103,6 +111,20 @@ static inline void RCC_GPIO_Config(void) {
         #error "_USE_GPIOx not defined."    
     #endif
     RCC->APB2ENR |= RCC_APB2Periph_AFIO;    // enable afio
+
+    // gd32f130/150, 330/350
+#elif defined (GD32F350) || defined (GD32F130_150) || defined (GD32F330)
+    #if (_USE_GPIOA)
+    RCU_REG_VAL(RCU_GPIOA) |= BIT(RCU_BIT_POS(RCU_GPIOA));
+    #elif (_USE_GPIOB)
+    RCU_REG_VAL(RCU_GPIOB) |= BIT(RCU_BIT_POS(RCU_GPIOB));
+    #elif (_USE_GPIOC)
+    RCU_REG_VAL(RCU_GPIOC) |= BIT(RCU_BIT_POS(RCU_GPIOC));
+    #elif (_USE_GPIOD)
+    RCU_REG_VAL(RCU_GPIOD) |= BIT(RCU_BIT_POS(RCU_GPIOD));
+    #else
+        #error "_USE_GPIOx not defined."    
+    #endif
 #endif
 
 // gpio config
@@ -145,41 +167,69 @@ static inline void RCC_GPIO_Config(void) {
     GPIOx->CRL &= ~(0xf << ((_USART_RXPIN) * 4));
     GPIOx->CRL |= ((GPIO_Mode_IPU & 0xf) << ((_USART_RXPIN) *4));
     #endif
-#endif	/* STM32F10X_HD */
+
+#elif defined (GD32F350) || defined (GD32F130_150) || defined (GD32F330)
+    #if (_USART_TXPIN / 8)  // TXPIN, 8-15
+    GPIO_AFSEL1(GPIOx) &= ~(0xf << ((_USART_TXPIN - 8) * 4));
+    GPIO_AFSEL1(GPIOx) |= (_GPIO_AF_TXPIN << ((_USART_TXPIN - 8) * 4));
+    #else   // 0-7
+    GPIO_AFSEL0(GPIOx) &= ~(0xf << ((_USART_TXPIN) * 4));
+    GPIO_AFSEL0(GPIOx) |= (_GPIO_AF_TXPIN << ((_USART_TXPIN) * 4));
+    #endif
+
+    #if (_USART_RXPIN / 8)  // RXPIN, 8-15
+    GPIO_AFSEL1(GPIOx) &= ~(0xf << ((_USART_RXPIN - 8) * 4));
+    GPIO_AFSEL1(GPIOx) |= (_GPIO_AF_RXPIN << ((_USART_RXPIN - 8) * 4));
+    #else   // 0-7
+    GPIO_AFSEL0(GPIOx) &= ~(0xf << ((_USART_RXPIN) * 4));
+    GPIO_AFSEL0(GPIOx) |= (_GPIO_AF_RXPIN << ((_USART_RXPIN) * 4));
+    #endif
+
+    GPIO_CTL(GPIOx) |= (GPIO_MODE_AF << (_USART_TXPIN * 2)) | (GPIO_MODE_AF << (_USART_RXPIN * 2));
+    GPIO_PUD(GPIOx) |= (GPIO_PUPD_PULLUP << (_USART_TXPIN * 2)) | (GPIO_PUPD_PULLUP << (_USART_RXPIN * 2));
+    GPIO_OMODE(GPIOx) |= (_USART_TXPIN);
+
+    #if defined (GD32F130_150)
+    GPIO_OSPD(GPIOx) |= (GPIO_OSPEED_10MHZ << (_USART_TXPIN * 2));
+    #else
+    GPIO_OSPD0(GPIOx) |= (GPIO_OSPEED_10MHZ << (_USART_TXPIN * 2));
+    #endif
+#endif
 }
 
-void USART_Config(void) {
-#if defined (GD32F350) || defined (GD32F130_150) || defined (GD32F330)
-    RCU_REG_VAL(RCU_USART1) |= BIT(RCU_BIT_POS(RCU_USART1));
-    RCU_REG_VAL(RCU_GPIOA) |= BIT(RCU_BIT_POS(RCU_GPIOA));
-    gpio_af_set(GPIOx, GPIO_AF_1, GPIO_PIN_2 | GPIO_PIN_3);
-    gpio_mode_set(GPIOx, GPIO_MODE_AF, GPIO_PUPD_PULLUP, GPIO_PIN_2 | GPIO_PIN_3);
-    gpio_output_options_set(GPIOx, GPIO_OTYPE_PP, GPIO_OSPEED_10MHZ, GPIO_PIN_2);
+void USART_Config(void) 
+{
+    RCC_GPIO_Config();
+
+#if (defined (GD32F350) || defined (GD32F130_150) || defined (GD32F330))
     usart_deinit(USARTx); /* USART configure */
     USART_CTL0 (USARTx) = 0x0000000c;
     USART_CTL1 (USARTx) = 0x00000000;
     USART_BAUD (USARTx) = 0x00000010;
     USART_CTL0(USARTx) |= USART_CTL0_UEN; //usart_enable(USARTx);
 #else
-    RCC_GPIO_Config();
 
     USARTx->CR1 &= ~USART_CR1_UE; // stop
     USARTx->CR1 |= (USART_Mode_Tx | USART_Mode_Rx);
 
-#if !defined (STM32F401xx) && !defined(STM32F40_41xxx)
-    USARTx->BRR = 16; // 8M / 16 = 500k
-#else
-    USARTx->BRR = 32; // 16M / 32 = 500k
-#endif
-
-#if !defined (STM32F10X_HD) && !defined (STM32F401xx) && !defined (STM32F10X_MD_VL) && !defined (STM32F40_41xxx)
-    #if (_USART_PIN_SWAP)
-    USARTx->CR2 |= USART_CR2_SWAP;
+    #if !defined (STM32F401xx) && !defined(STM32F40_41xxx)
+        #if (_USE_PLL == 0)
+            USARTx->BRR = 16; // baudrate could only be 500000 if pll disabled
+        #else
+            USARTx->BRR = 24000000UL / _BAUDRATE;
+        #endif
+    #else
+        USARTx->BRR = 32; // 16M / 32 = 500k
     #endif
-#endif
-    USARTx->CR1 |= USART_CR1_UE;
 
-#endif	/* GD32F350 */
+    #if !defined (STM32F10X_HD) && !defined (STM32F401xx) && !defined (STM32F10X_MD_VL) && !defined (STM32F40_41xxx)
+        #if (_USART_PIN_SWAP)
+        USARTx->CR2 |= USART_CR2_SWAP;
+        #endif
+    #endif
+    USARTx->CR1 |= USART_CR1_UE;
+#endif
+
     g.nocomm = 1;
     xdev_out(uputc);
 // while(1) { xprintf("Hello, world.\n"); ( {  for(volatile int i = 0; i < 100000UL; i++);}); }	// for debug
