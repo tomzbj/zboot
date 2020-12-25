@@ -9,6 +9,8 @@
 
 #if (_USE_USART1)
     #define USARTx USART1
+#elif (_USE_USART0)
+    #define USARTx USART0
 #elif (_USE_USART2)
     #define USARTx USART2
 #elif (_USE_USART3)
@@ -61,9 +63,12 @@ static inline void RCC_GPIO_Config(void) {
     #endif
 #elif defined (GD32F350) || defined (GD32F130_150) || defined (GD32F330)
     #if (_USE_USART1)
-    RCU_REG_VAL(RCU_USART1) |= BIT(RCU_BIT_POS(RCU_USART1));
+        RCU_REG_VAL(RCU_USART1) |= BIT(RCU_BIT_POS(RCU_USART1));
     #elif (_USE_USART2)
-    RCU_REG_VAL(RCU_USART2) |= BIT(RCU_BIT_POS(RCU_USART2));
+        RCU_REG_VAL(RCU_USART2) |= BIT(RCU_BIT_POS(RCU_USART2));
+    #elif (_USE_USART0)
+        RCU_REG_VAL(RCU_USART0) |= BIT(RCU_BIT_POS(RCU_USART0));
+    #else
         #error "_USE_USARTx/UARTx not defined."
     #endif
 
