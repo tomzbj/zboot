@@ -3,3 +3,4 @@ f030f4 ok
 f103rc/re ok
 f303cc/rc ok
 f401rc ok
+gd32f130 ok
