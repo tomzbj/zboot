@@ -7,8 +7,8 @@
 #define _USE_CLI 1
 
 // choose one 
-#define _USE_USART0  1  // only available on gd32's
-#define _USE_USART1  0
+#define _USE_USART0  0  // only available on gd32's
+#define _USE_USART1  1
 #define _USE_USART2  0
 #define _USE_USART3  0
 #define _USE_USART4  0  // only available on stm32f0
@@ -24,10 +24,10 @@
 #define _USART_TXPIN 9
 #define _USART_RXPIN 10
 
-#define _GPIO_AF_TXPIN GPIO_AF_1
-#define _GPIO_AF_RXPIN GPIO_AF_1
+#define _GPIO_AF_TXPIN GPIO_AF_7
+#define _GPIO_AF_RXPIN GPIO_AF_7
 
-#define _USART_PIN_SWAP 1   // NOT available on stm32 f1/f4!
+#define _USART_PIN_SWAP 0   // NOT available on stm32 f1/f4!
 
 #define _USE_PLL 0
 #define _BAUDRATE 500000    // _USE_PLL must be 1 if BAUDRATE > 500000
