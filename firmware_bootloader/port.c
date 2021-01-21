@@ -5,8 +5,7 @@
 
 void FLASH_ErasePage(unsigned long addr)
 {
-    xprintf("%08X\n", addr);
-
+//    xprintf("%08X\n", addr);
     addr -= FLASH_BASE;
     if(addr >= 0 && addr < 0x4000)
         FLASH_EraseSector(FLASH_Sector_0, VoltageRange_3);
