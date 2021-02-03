@@ -24,7 +24,7 @@ void SystemInit(void) {
     RCU_ADDINT = 0x00000000U;
 #endif
     RCU_INT = 0x00000000U;
-#elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F10X_HD)|| defined (STM32F401xx) || defined (STM32F042) || defined (STM32F10X_MD_VL) || defined (STM32F051)
+#elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F10X_HD)|| defined (STM32F401xx) || defined (STM32F042) || defined (STM32F10X_MD_VL) || defined (STM32F051) || defined (STM32F030xC)
     RCC_DeInit();
 #if _USE_PLL
     FLASH_SetLatency(FLASH_Latency_1);

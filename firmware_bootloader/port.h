@@ -4,7 +4,7 @@
 // flash page sizes
 #if defined (GD32F350)  || defined (GD32F330) || defined (GD32F130_150) || defined (STM32F030) || defined (STM32F042) || defined (STM32F10X_MD_VL) || defined (STM32F051)
 #define FLASH_PAGE_SIZE 1024
-#elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F10X_HD) || defined (STM32F070xB)
+#elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F10X_HD) || defined (STM32F070xB) || defined (STM32F030xC)
 #define FLASH_PAGE_SIZE 2048
 #elif defined (STM32F401xx) || defined (STM32F40_41xxx)
 #define FLASH_PAGE_SIZE 16384
@@ -17,7 +17,7 @@
 #include "gd32f1x0.h" 
 #elif defined (STM32F303xC)
 #include "stm32f30x.h" 
-#elif defined (STM32F072) || defined (STM32F030) || defined (STM32F042) || defined (STM32F051) || defined (STM32F070xB)
+#elif defined (STM32F072) || defined (STM32F030) || defined (STM32F042) || defined (STM32F051) || defined (STM32F070xB) || defined (STM32F030xC)
 #include "stm32f0xx.h" 
 #elif defined (STM32F10X_HD) || defined (STM32F10X_MD_VL)
 #include "stm32f10x.h" 
@@ -44,7 +44,7 @@
 #define USART_FLAG_FE USART_FLAG_FERR
 
 // usart ops & flags for stm32
-#elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F042) || defined (STM32F051) || defined (STM32F070xB)
+#elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F042) || defined (STM32F051) || defined (STM32F070xB) || defined (STM32F030xC)
 #define usart_flag_get1(usartx, flag) (usartx->ISR & flag)
 #define usart_flag_clear1(usartx, flag) do{usartx->ICR = flag;} while(0)
 

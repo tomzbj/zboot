@@ -61,7 +61,7 @@ void IAP_Config(void)
 #if defined (GD32F350) || defined (GD32F330) || defined (STM32F10X_HD) || defined (GD32F130_150) || defined (STM32F10X_MD_VL)
 #define REG_DENSITY     *(unsigned long*)0x1ffff7e0
     g.flash_size = REG_DENSITY & 0xffff;
-#elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F042) || defined (STM32F051) || defined (STM32F070xB)
+#elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F042) || defined (STM32F051) || defined (STM32F070xB) || defined (STM32F030xC)
 #define REG_DENSITY     *(unsigned short*)0x1ffff7cc
     g.flash_size = REG_DENSITY;
 #elif defined (STM32F401xx) || defined (STM32F40_41xxx)

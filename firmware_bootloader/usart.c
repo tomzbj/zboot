@@ -45,7 +45,7 @@ static struct {
 
 static inline void RCC_GPIO_Config(void) {
     // enables usart/uart clock
-#if defined (STM32F303xC) || defined (STM32F401xx) || defined (STM32F40_41xxx) || defined (STM32F072) || defined (STM32F042) || defined (STM32F030) || defined (STM32F051) || defined (STM32F070xB) || defined (STM32F10X_MD_VL) || defined (STM32F10X_HD)
+#if defined (STM32F303xC) || defined (STM32F401xx) || defined (STM32F40_41xxx) || defined (STM32F072) || defined (STM32F042) || defined (STM32F030) || defined (STM32F051) || defined (STM32F070xB) || defined (STM32F10X_MD_VL) || defined (STM32F10X_HD) || defined (STM32F030xC)
     #if (_USE_USART1)
     RCC->APB2ENR |= RCC_APB2Periph_USART1;
     #elif (_USE_USART2)
@@ -75,7 +75,7 @@ static inline void RCC_GPIO_Config(void) {
 #endif
 
     // enables gpio clock,  f0 & f3, gpio on ahb
-#if defined (STM32F303xC) || defined (STM32F072) || defined (STM32F042) || defined (STM32F030) || defined (STM32F051) || defined (STM32F070xB)
+#if defined (STM32F303xC) || defined (STM32F072) || defined (STM32F042) || defined (STM32F030) || defined (STM32F051) || defined (STM32F070xB) || defined (STM32F030xC) 
     #if (_USE_GPIOA)
     RCC->AHBENR |= RCC_AHBPeriph_GPIOA;
     #elif (_USE_GPIOB)
@@ -133,7 +133,7 @@ static inline void RCC_GPIO_Config(void) {
 #endif
 
 // gpio config
-#if defined (STM32F303xC) || defined (STM32F072) || defined (STM32F042) || defined (STM32F030) || defined (STM32F051) || defined (STM32F070xB) || defined (STM32F401xx) || defined (STM32F40_41xxx)
+#if defined (STM32F303xC) || defined (STM32F072) || defined (STM32F042) || defined (STM32F030) || defined (STM32F051) || defined (STM32F070xB) || defined (STM32F401xx) || defined (STM32F40_41xxx) || defined (STM32F030xC)
     GPIOx->OSPEEDR |= (GPIO_Speed_50MHz << (_USART_TXPIN * 2)) | (GPIO_Speed_50MHz << (_USART_RXPIN * 2));
     GPIOx->OTYPER |= (GPIO_OType_PP << (_USART_TXPIN * 2)) | (GPIO_OType_PP << (_USART_RXPIN * 2));
     GPIOx->MODER |= (GPIO_Mode_AF << (_USART_TXPIN * 2)) | (GPIO_Mode_AF << (_USART_RXPIN * 2));
@@ -249,7 +249,7 @@ void USART_Poll(void) {
         if (g.size < MAX_LEN) {
 #if defined(GD32F350) || defined (GD32F130_150) || defined (GD32F330)
             g.msg[g.size] = USART_RDATA(USARTx);
-#elif defined(STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F042) || defined (STM32F051) || defined (STM32F070xB)
+#elif defined(STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F042) || defined (STM32F051) || defined (STM32F070xB) || defined (STM32F030xC)
             g.msg[g.size] = USARTx->RDR;
 #elif defined(STM32F10X_HD) || defined (STM32F401xx) || defined (STM32F10X_MD_VL) || defined (STM32F40_41xxx)
             g.msg[g.size] = USARTx->DR;
@@ -310,7 +310,7 @@ void uputc(unsigned char c) {
     ( {  while(RESET == usart_flag_get1(USARTx, USART_FLAG_TXE));});
 #if defined (GD32F350) || defined (GD32F130_150) || defined (GD32F330)
     USART_TDATA (USARTx) = (USART_TDATA_TDATA & c);
-#elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F042) || defined (STM32F051) || defined (STM32F070xB)
+#elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F042) || defined (STM32F051) || defined (STM32F070xB) || defined (STM32F030xC)
     USARTx->TDR = c;
 #elif defined (STM32F10X_HD) || defined (STM32F401xx) || defined (STM32F10X_MD_VL) || defined (STM32F40_41xxx)
     USARTx->DR = c;
