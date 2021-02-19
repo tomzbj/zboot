@@ -116,6 +116,9 @@ static inline void RCC_GPIO_Config(void) {
         #error "_USE_GPIOx not defined."    
     #endif
     RCC->APB2ENR |= RCC_APB2Periph_AFIO;    // enable afio
+    #ifdef _GPIO_PIN_REMAP
+    GPIO_PinRemapConfig(_GPIO_PIN_REMAP, ENABLE);
+    #endif
 
     // gd32f130/150, 330/350
 #elif defined (GD32F350) || defined (GD32F130_150) || defined (GD32F330)
