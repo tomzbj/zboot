@@ -38,7 +38,9 @@ arm-none-eabi-gcc 4.9.3. Keil或IAR用户可能需要手动修改链接脚本和
 
 ## 配置流程
 
-在usart.c里修改用到的usart外设和管脚, 需要仔细对照自己的stm32型号.
+~~在usart.c里修改用到的usart外设和管脚, 需要仔细对照自己的stm32型号.~~
+
+现在基本不需要修改usart.c了, 只要在zboot_misc.h里修改宏定义即可.
 
 之后执行build.bat, 选择mcu型号, 即可编译出所需要的bootloader.
 
@@ -121,9 +123,9 @@ FLASH_EEPROM_Config(APP_BASE - PAGE_SIZE, PAGE_SIZE);
 
 ## 注意事项
 
-- 在STM32F10X上配置GPIO时需要特别注意: 某些情况下需要打开AFIO时钟, 某些情况下需要打开特定的REMAP. 这里可能会花费你很多时间去排查. 在STM32F0/F3/F4上就没这么麻烦了.
+- STM32F10X可能需要打开特定的REMAP, 请参照Datasheet/Reference Manual修改zboot.misc里#define _GPIO_PIN_REMAP这行. 
 
-- STM32F0/F3支持TX/RX管脚交换, 只需要根据情况加上或者去掉`USARTx->CR2 |= USART_CR2_SWAP;`这一行前面的注释即可. F1/F4如果弄错TX/RX, 要么费点劲飞线, 要么就得重新做板了.  
+- STM32F0/F3支持TX/RX管脚交换, 只需要根据情况把#define _USART_PIN_SWAP后面改为1或0即可. F1/F4如果弄错TX/RX, 要么费点劲飞线, 要么就得重新做板了.  
 
 ## 致谢
 

@@ -31,7 +31,4 @@
 
 #define _USART_PIN_SWAP 0   // NOT available on stm32 f1/f4!
 
-#define _USE_PLL 0
-#define _BAUDRATE 500000    // _USE_PLL must be 1 if BAUDRATE > 500000
-
 #endif
