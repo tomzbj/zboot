@@ -16,15 +16,15 @@
 #define _USE_UART5  0    
 
 // choose one 
-#define _USE_GPIOA   0
-#define _USE_GPIOB   1
+#define _USE_GPIOA   1
+#define _USE_GPIOB   0
 #define _USE_GPIOC   0
 #define _USE_GPIOD   0
 
-#define _USART_TXPIN 6
-#define _USART_RXPIN 7 
+#define _USART_TXPIN 9
+#define _USART_RXPIN 10
 
-#define _GPIO_AF_TXPIN GPIO_AF_1
+#define _GPIO_AF_TXPIN GPIO_AF_1    // available on stm32f0xx/f3xx, or change to GPIO_AF_USARTx on stm32f4xx
 #define _GPIO_AF_RXPIN GPIO_AF_1
 
 #define _GPIO_PIN_REMAP GPIO_Remap_USART1   // CAN BE USART1, USART2, GPIO_PartialRemap_USART3, GPIO_FullRemap_USART3, only available on stm32f10x
