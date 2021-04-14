@@ -3,8 +3,9 @@
 
 #include "port.h"
 
-#define _USE_EEPROM 1
+#define _USE_EEPROM 0
 #define _USE_CLI 1
+#define _FORCE_FLASH_SIZE 0    // overwrite original flash size
 
 // choose one 
 #define _USE_USART0  0  // only available on gd32's

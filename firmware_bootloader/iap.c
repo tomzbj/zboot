@@ -69,6 +69,10 @@ void IAP_Config(void)
     g.flash_size = REG_DENSITY;
 #endif
 
+#if _FORCE_FLASH_SIZE
+    g.flash_size = _FORCE_FLASH_SIZE;
+#endif
+
     g.sram_size = ((unsigned long)&_estack - (unsigned long)&_sdata) / 1024;
 #if _USE_EEPROM
     g.eeprom_base = FLASH_BASE + g.bootloader_size;
