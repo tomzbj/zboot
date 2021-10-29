@@ -15,13 +15,14 @@ arm-none-eabi-gcc 4.9.3. Keil或IAR用户可能需要手动修改链接脚本和
 1. STM32F070CB, 未充分测试.
 1. STM32F072CB, 实测正常使用.
 1. STM32F100C8, 实测正常使用.
-1. STM32F103RC, 实测正常使用.
+1. STM32F103xC/xE, 实测正常使用 (GD32F103xC/xE可以直接代用.)
 1. STM32F303CC, 实测正常使用.
 1. STM32F401RC, 实测正常使用.
 1. STM32F407VE, 未充分测试.
 1. GD32F130F8, 实测正常使用.
 1. GD32F330F8, 实测正常使用.
 1. GD32F350CB, 实测正常使用.
+1. GD32FFPRTGU6, 实测正常使用 (当作STM32F103xC/xE即可. GD32F303xC/xE未测试, 估计一样能用.)
 
 ## 空间占用情况
 
@@ -125,7 +126,7 @@ FLASH_EEPROM_Config(APP_BASE - PAGE_SIZE, PAGE_SIZE);
 
 - STM32F10X可能需要打开特定的REMAP, 请参照Datasheet/Reference Manual修改zboot.misc里#define _GPIO_PIN_REMAP这行. 
 
-- STM32F0/F3支持TX/RX管脚交换, 只需要根据情况把#define _USART_PIN_SWAP后面改为1或0即可. F1/F4如果弄错TX/RX, 要么费点劲飞线, 要么就得重新做板了.  
+- STM32F0/F3支持TX/RX管脚交换, 只需要根据情况把#define _USART_PIN_SWAP后面改为1或0即可. F1/F4如果弄错TX/RX, 要么费点劲飞线, 要么就得重新做板了. GD32呢? F1X0和F3X0支持TX/RX交换, 而F10X和F30X不支持.
 
 ## 致谢
 
