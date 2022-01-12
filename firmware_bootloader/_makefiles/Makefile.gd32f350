@@ -2,8 +2,8 @@
 CPU := cortex-m4
 MCU := GD32F350
 FREQ := 8000000
-FLASH_SIZE := 128K
-MEM_SIZE := 16K
+FLASH_SIZE := 64K
+MEM_SIZE := 8K
 
 # toolchain
 TRGT = arm-none-eabi-

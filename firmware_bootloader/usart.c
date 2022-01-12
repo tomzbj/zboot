@@ -240,6 +240,7 @@ void USART_Config(void)
 
     g.nocomm = 1;
     xdev_out(uputc);
+//    while(1) { uputc('K');}
 // while(1) { xprintf("Hello, world.\n"); ( {  for(volatile int i = 0; i < 100000UL; i++);}); }	// for debug
 }
 

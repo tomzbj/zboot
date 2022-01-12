@@ -169,8 +169,8 @@ void IAP_Parse(const unsigned char* msg, int msg_size)
             uwrite(&crc, sizeof(crc));
             break;
         case IAP_ERASE_APP:          // 擦除APP区全部内容
-            IAP_EraseApp();
             uputc(0x00);
+            IAP_EraseApp();
             break;
         case IAP_WRITE_FLASH:          // 写flash
             memcpy(&size, &msg[2], sizeof(size));
