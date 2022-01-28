@@ -45,7 +45,7 @@ static struct {
 
 static inline void RCC_GPIO_Config(void) {
     // enables usart/uart clock
-#if defined (STM32F303xC) || defined (STM32F401xx) || defined (STM32F40_41xxx) || defined (STM32F072) || defined (STM32F042) || defined (STM32F030) || defined (STM32F051) || defined (STM32F070xB) || defined (STM32F10X_MD_VL) || defined (STM32F10X_HD) || defined (STM32F030xC)
+#if defined (STM32F303xC) || defined (STM32F401xx) || defined (STM32F40_41xxx) || defined (STM32F072) || defined (STM32F042) || defined (STM32F030) || defined (STM32F051) || defined (STM32F070xB) || defined (STM32F10X_MD_VL) || defined (STM32F10X_HD) || defined (STM32F030xC) || defined (STM32F10X_MD)
     #if (_USE_USART1)
     RCC->APB2ENR |= RCC_APB2Periph_USART1;
     #elif (_USE_USART2)
@@ -103,7 +103,7 @@ static inline void RCC_GPIO_Config(void) {
     #endif
 
     // f1, gpio on apb2
-#elif defined (STM32F10X_HD) || defined (STM32F10X_MD_VL)
+#elif defined (STM32F10X_HD) || defined (STM32F10X_MD_VL) || defined (STM32F10X_MD)
     #if (_USE_GPIOA)
     RCC->APB2ENR |= RCC_APB2Periph_GPIOA;
     #elif (_USE_GPIOB)
@@ -158,7 +158,7 @@ static inline void RCC_GPIO_Config(void) {
     GPIOx->AFR[0] &= ~(0xf << ((_USART_RXPIN) * 4));
     GPIOx->AFR[0] |= (_GPIO_AF_RXPIN << ((_USART_RXPIN) * 4));
     #endif
-#elif defined (STM32F10X_HD) || defined (STM32F10X_MD_VL)
+#elif defined (STM32F10X_HD) || defined (STM32F10X_MD_VL) || defined (STM32F10X_MD)
     // there may be some additional pin map configurations here!!!
     #if (_USART_TXPIN / 8)  // TXPIN, 8-15
     GPIOx->CRH &= ~(0xf << ((_USART_TXPIN - 8) * 4));
@@ -230,7 +230,7 @@ void USART_Config(void)
         USARTx->BRR = 32; // 16M / 32 = 500k
     #endif
 
-    #if !defined (STM32F10X_HD) && !defined (STM32F401xx) && !defined (STM32F10X_MD_VL) && !defined (STM32F40_41xxx)
+    #if !defined (STM32F10X_HD) && !defined (STM32F401xx) && !defined (STM32F10X_MD_VL) && !defined (STM32F40_41xxx) && !defined (STM32F10X_MD)
         #if (_USART_PIN_SWAP)
         USARTx->CR2 |= USART_CR2_SWAP;
         #endif
@@ -255,7 +255,7 @@ void USART_Poll(void) {
             g.msg[g.size] = USART_RDATA(USARTx);
 #elif defined(STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F042) || defined (STM32F051) || defined (STM32F070xB) || defined (STM32F030xC)
             g.msg[g.size] = USARTx->RDR;
-#elif defined(STM32F10X_HD) || defined (STM32F401xx) || defined (STM32F10X_MD_VL) || defined (STM32F40_41xxx)
+#elif defined(STM32F10X_HD) || defined (STM32F401xx) || defined (STM32F10X_MD_VL) || defined (STM32F40_41xxx) || defined (STM32F10X_MD)
             g.msg[g.size] = USARTx->DR;
 #endif
             g.size++;
@@ -277,7 +277,7 @@ void USART_Poll(void) {
             g.nocomm = 0;
         }
         g.size = 0;
-#if defined(STM32F10X_HD) || defined (STM32F10X_MD_VL) || defined (STM32F401xx) || defined (STM32F40_41xxx)
+#if defined(STM32F10X_HD) || defined (STM32F10X_MD_VL) || defined (STM32F401xx) || defined (STM32F40_41xxx) || defined (STM32F10X_MD)
         volatile unsigned long tmp = tmp;
         tmp = USARTx->SR;
         tmp = USARTx->DR;
@@ -286,7 +286,7 @@ void USART_Poll(void) {
 #endif
     }
     if (usart_flag_get1(USARTx, USART_FLAG_ORE)) {
-#if defined(STM32F10X_HD) || defined (STM32F10X_MD_VL) || defined (STM32F401xx) || defined (STM32F40_41xxx)
+#if defined(STM32F10X_HD) || defined (STM32F10X_MD_VL) || defined (STM32F401xx) || defined (STM32F40_41xxx) || defined (STM32F10X_MD)
         volatile unsigned long tmp = tmp;
         tmp = USARTx->SR;
         tmp = USARTx->DR;
@@ -295,7 +295,7 @@ void USART_Poll(void) {
 #endif
     }
     if (usart_flag_get1(USARTx, USART_FLAG_FE)) {
-#if defined(STM32F10X_HD) || defined (STM32F10X_MD_VL) || defined (STM32F401xx) || defined (STM32F40_41xxx)
+#if defined(STM32F10X_HD) || defined (STM32F10X_MD_VL) || defined (STM32F401xx) || defined (STM32F40_41xxx) || defined (STM32F10X_MD)
         volatile unsigned long tmp = tmp;
         tmp = USARTx->SR;
         tmp = USARTx->DR;
@@ -316,7 +316,7 @@ void uputc(unsigned char c) {
     USART_TDATA (USARTx) = (USART_TDATA_TDATA & c);
 #elif defined (STM32F303xC) || defined (STM32F072) || defined (STM32F030) || defined (STM32F042) || defined (STM32F051) || defined (STM32F070xB) || defined (STM32F030xC)
     USARTx->TDR = c;
-#elif defined (STM32F10X_HD) || defined (STM32F401xx) || defined (STM32F10X_MD_VL) || defined (STM32F40_41xxx)
+#elif defined (STM32F10X_HD) || defined (STM32F401xx) || defined (STM32F10X_MD_VL) || defined (STM32F40_41xxx) || defined (STM32F10X_MD)
     USARTx->DR = c;
 #endif
     ( {  while(RESET == usart_flag_get1(USARTx, USART_FLAG_TC));});

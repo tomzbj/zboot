@@ -9,8 +9,8 @@
 
 // choose one 
 #define _USE_USART0  0  // only available on gd32's
-#define _USE_USART1  0
-#define _USE_USART2  1
+#define _USE_USART1  1
+#define _USE_USART2  0
 #define _USE_USART3  0
 #define _USE_USART4  0  // only available on stm32f0
 #define _USE_UART4  0   // on stm32f1, f3, f4
@@ -22,8 +22,8 @@
 #define _USE_GPIOC   0
 #define _USE_GPIOD   0
 
-#define _USART_TXPIN 2
-#define _USART_RXPIN 3
+#define _USART_TXPIN 9
+#define _USART_RXPIN 10
 
 #define _GPIO_AF_TXPIN GPIO_AF_1    // available on stm32f0xx/f3xx, or change to GPIO_AF_USARTx on stm32f4xx
 #define _GPIO_AF_RXPIN GPIO_AF_1
