@@ -22,12 +22,13 @@ arm-none-eabi-gcc 4.9.3. Keil或IAR用户可能需要手动修改链接脚本和
 1. GD32F130F8, 实测正常使用.
 1. GD32F330F8, 实测正常使用.
 1. GD32F350CB, 实测正常使用.
-1. GD32FFPRTGU6, 实测正常使用 (当作STM32F103xC/xE即可. GD32F303xC/xE未测试, 估计一样能用.)
+1. GD32FFPRTGU6, 实测正常使用 (当作STM32F103xC/xE即可.)
+1. GD32F303CC, 实测正常使用 (当作STM32F103xC/xE即可.)
+1. STM32F103C8, 实测正常使用.
 
 ## 空间占用情况
 
-- 在FLASH每页1K的MCU上共占用8K FLASH, 其中EEPROM占1页, 提供256字节EEPROM空间.
-- (在STM32F042上占用9K FLASH.)
+- 在FLASH每页1K的MCU上共占用7或8K FLASH, 其中EEPROM占1页, 提供256字节EEPROM空间.
 - 在FLASH每页2K的MCU上共占用10K FLASH, 提供512字节EEPROM空间.
 - 在STM32F401/407上共占用32K FLASH, 提供4096字节EEPROM空间. (尚未充分测试!)
 - 如果不使用EEPROM (修改zboot_misc.h中的宏定义), 可以节约2K FLASH.

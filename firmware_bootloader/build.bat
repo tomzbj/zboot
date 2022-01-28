@@ -17,11 +17,13 @@ echo B. STM32F100C8
 echo C. STM32F407VE
 echo D. STM32F051C8
 echo E. STM32F030xC
+echo F. STM32F103C8/CB
 echo Q. Exit
 echo Please enter:
-choice /c:123456789ABCDEQ
+choice /c:123456789ABCDEFQ
 
-if errorlevel 15 goto :end
+if errorlevel 16 goto :end
+if errorlevel 15 make.exe -Bsj -f "_makefiles\Makefile.stm32f10x_md"
 if errorlevel 14 make.exe -Bsj -f "_makefiles\Makefile.stm32f030xC"
 if errorlevel 13 make.exe -Bsj -f "_makefiles\Makefile.stm32f051"
 if errorlevel 12 make.exe -Bsj -f "_makefiles\Makefile.stm32f407"

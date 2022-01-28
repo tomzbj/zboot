@@ -1,9 +1,9 @@
 # hardware
-CPU := cortex-m4
-MCU := GD32F350
+CPU := cortex-m3
+MCU := STM32F10X_MD
 FREQ := 8000000
 FLASH_SIZE := 64K
-MEM_SIZE := 8K
+MEM_SIZE := 20K
 
 # toolchain
 TRGT = arm-none-eabi-
@@ -22,7 +22,7 @@ IAP  := $(PYTHON) "iap_test.py"
 # List all default C defines here, like -D_DEBUG=1
 
 DEBUG = 0
-DDEFS = -D$(shell echo $(MCU) | tr a-z A-Z)
+DDEFS = -D$(shell echo $(MCU))
 DDEFS += -DUSE_STDPERIPH_DRIVER -DHSE_VALUE=$(FREQ)
 DDEFS += -D_DEBUG=$(DEBUG)
 DADEFS =
@@ -37,14 +37,14 @@ UDEFS =
 UADEFS =
 
 # List source files here
-STDLIBDIR = c:/yagarto/cmsis_gd32f3x0
+STDLIBDIR = c:/yagarto/cmsis_cm3_v361
 CORELIBDIR = $(STDLIBDIR)/_cmsis
-STDPHDRV_DIR = $(STDLIBDIR)/_f3x0_stdperiph_drv
+STDPHDRV_DIR = $(STDLIBDIR)/_f10x_stdperiph_drv
 STDPHDRV_SRCDIR = $(STDPHDRV_DIR)/src
 STDPHDRV_INCDIR = $(STDPHDRV_DIR)/inc
 STARTUPDIR = $(STDLIBDIR)/_startup
 INCDIR = ./inc
-DLIBS = -L _libs -lgd32f3x0_8m
+DLIBS = -L _libs -lstm32f10x_md_vl_8m
 
 ## List ASM source files here
 ASRC = $(STARTUPDIR)/startup_$(shell echo $(MCU) | tr A-Z a-z).s
@@ -66,7 +66,7 @@ OPT = -Os
 # End of user defines
 
 # Define linker script file here
-LDSCRIPT = ./_ldscripts/gd32f3x0_rom.lds
+LDSCRIPT = ./_ldscripts/stm32f10x_rom.lds
 FULL_PRJ = $(PROJECT)_rom
  
 INCDIR  = $(patsubst %,-I%,$(DINCDIR) $(UINCDIR))

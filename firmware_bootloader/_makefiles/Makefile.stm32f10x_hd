@@ -2,8 +2,8 @@
 CPU := cortex-m3
 MCU := STM32F10X_HD
 FREQ := 8000000
-FLASH_SIZE := 512K
-MEM_SIZE := 64K
+FLASH_SIZE := 256K
+MEM_SIZE := 48K
 
 # toolchain
 TRGT = arm-none-eabi-

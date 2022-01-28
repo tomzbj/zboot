@@ -136,7 +136,7 @@ clean:
 	rm $(ASRC:.s=.lst)
     
 flash:
-	$(STLINK) -c SWD freq=4000 -P $(FULL_PRJ).hex -V -Rst
+	$(STLINK) -c SWD freq=400 -P $(FULL_PRJ).hex -V -Rst
 
 reset:
 	$(STLINK) -c SWD -Rst 
