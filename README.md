@@ -104,6 +104,8 @@ FLASH_EEPROM_Config(APP_BASE - PAGE_SIZE, PAGE_SIZE);
 
 如果不需要使用命令行界面, 可以在zboot_misc.h里再把_USE_CLI后面的1改为0. 这样总的flash空间用量可降到2或3K.
 
+有些MCU的实际容量比标称的大, 比如STM32F103C8T6实际有可能和CBT6一样是128K, STM32F030F4P6是32K, STM32F103RCT6是512K等(不一定每片都可以). 如果想试试, 在zboot_misc.h里把_FORCE_FLASH_SIZE后面的0改为你需要的值(单位KB)即可. 如果写入出错, 请把这里改回0. 玩玩可以, 做产品不建议这么搞.
+
 ## 命令行操作
 
 所有命令前面需要加上##.
