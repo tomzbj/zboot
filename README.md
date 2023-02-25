@@ -25,6 +25,7 @@ arm-none-eabi-gcc 4.9.3. Keil或IAR用户可能需要手动修改链接脚本和
 1. GD32FFPRTGU6, 实测正常使用 (当作STM32F103xC/xE即可.)
 1. GD32F303CC, 实测正常使用 (当作STM32F103xC/xE即可.)
 1. STM32F103C8, 实测正常使用.
+1. GD32E230C8, 未充分测试 (当作STM32F030即可, 以及需要手动设置_FORCE_FLASH_SIZE为64)
 
 ## 空间占用情况
 
